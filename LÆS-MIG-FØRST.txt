@@ -1,0 +1,58 @@
+NEXT TRÆNINGSPLAN – SÅDAN ÅBNER DU SIDEN
+========================================
+
+1. Pak hele ZIP-filen ud.
+2. Åbn den udpakkede mappe.
+3. Dobbeltklik på index.html.
+
+Siden åbner direkte i din normale browser. Du skal IKKE installere Node.js,
+køre npm eller bruge en terminal.
+
+VISUAL STUDIO CODE
+------------------
+
+1. Vælg File > Open Folder og åbn denne mappe.
+2. Højreklik på index.html.
+3. Vælg Open with Live Server eller Show Preview.
+
+Du kan også blot dobbeltklikke på index.html i Windows Stifinder.
+
+INDHOLD
+-------
+
+- Valgfri træningsvarighed fra 20 til 180 minutter i intervaller på ét minut.
+- Alle programblokke genberegnes, så den samlede tid altid svarer præcis til
+  det valgte antal minutter.
+- Opvarmning på 5–10 minutter.
+- Tilpasning efter alder, erfaring, intensitet, holdtype og udstyr.
+- Gem program lokalt på enheden.
+- Åbn hver øvelse med plus-tegnet for at se professionelle start-/slutillustrationer.
+- Alle 38 øvelsesillustrationer er tilpasset med ensartet sikkerhedsmargen,
+  så hele kroppen og begge bevægelsespositioner vises uden beskæring. Den
+  oprindelige billedbaggrund er erstattet af samme råhvide farve som hele
+  billedrammen, så der ikke ses en indre rektangulær kasse.
+- Detaljeret anatomisk illustration af aktive muskelgrupper med navne på latin og dansk.
+- Spotify-forslag med tydelig 4/4-takt og BPM-zoner til timens tre faser.
+- Direkte Spotify-søgninger åbnes i en ny browserfane.
+- Ved Print / gem PDF åbnes alle øvelser automatisk, så illustrationer og
+  muskelgrupper kommer med i PDF-filen. Den valgte musikprofil, BPM-zoner og
+  klikbare Spotify-forslag til alle tre faser vises direkte på PDF'ens første
+  side før øvelsesprogrammet. Hvert understreget musikforslag er ét enkelt,
+  aktivt link til en Spotify-søgning efter præcis det viste forslag.
+
+VIGTIGT OM AKTIVE LINKS I PDF
+-----------------------------
+
+Vælg browserens destination "Gem som PDF" i udskriftsvinduet. Undgå
+"Microsoft Print to PDF", da denne Windows-printer kan fjerne hyperlinks fra
+PDF-filen. Åbn den gemte PDF i Microsoft Edge, Google Chrome eller Adobe
+Acrobat Reader, og klik på det understregede musikforslag.
+
+GITHUB PAGES
+------------
+
+Upload HELE indholdet af denne mappe til roden af dit GitHub-repository.
+Filen index.html skal ligge i repositoryets øverste niveau sammen med mapperne
+css, js og assets.
+
+Projektet kræver ingen installation og indeholder ingen skjulte afhængigheder.

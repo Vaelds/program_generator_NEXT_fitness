@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Sammensæt et målrettet holdtræningsprogram med valgfri varighed, aldersprofil, illustreret øvelsesvejledning, latinske muskelnavne og Spotify-musikforslag.">
+  <title>NEXT Træningsplan</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/app.js" defer></script>
+</head>
+<body>
+  <header class="masthead">
+    <a class="brand" href="#top" aria-label="NEXT Træningsplan – gå til toppen">
+      <img src="assets/images/next-logo.png" alt="NEXT Uddannelse København">
+    </a>
+    <div class="masthead-context"><span>Fitnessuddannelsen</span><strong>Træningslære · Holdtræning</strong></div>
+    <a class="header-link" href="#program">Se program <span aria-hidden="true">↘</span></a>
+  </header>
+
+  <main>
+    <section id="top" class="planner-hero" aria-labelledby="planner-title">
+      <img class="planner-hero-image" src="assets/images/training-planner-hero.png" alt="Instruktør leder en aldersdivers gruppe gennem en dynamisk opvarmning">
+      <div class="hero-shade"></div>
+      <div class="hero-copy">
+        <div class="eyebrow-line"><span>Planlægger</span> <b id="hero-duration-text">60 minutters holdtræning</b></div>
+        <h1 id="planner-title">Byg timen.<br><em>Ram holdet.</em></h1>
+        <p>Sammensæt et fagligt begrundet træningspas, der tager højde for alder, niveau, intensitet og musiksmag.</p>
+      </div>
+      <div class="hero-facts" aria-label="Planlæggerens egenskaber">
+        <div><strong id="hero-duration">60</strong><span>Minutter</span></div>
+        <div><strong>05–10</strong><span>Min. opvarmning</span></div>
+        <div><strong>01</strong><span>Færdigt forslag</span></div>
+      </div>
+    </section>
+
+    <section class="builder-shell" aria-label="Indstillinger og træningsprogram">
+      <aside class="control-panel">
+        <div class="section-label"><span>01</span> Holdprofil</div>
+        <h2>Fortæl os, hvem der står på gulvet.</h2>
+        <p class="control-intro">Alder er kun ét parameter. Niveau, dagsform og behov skal altid vurderes af instruktøren.</p>
+
+        <fieldset>
+          <legend>Aldersgruppe</legend>
+          <div class="segmented four" id="age-options">
+            <button type="button" data-value="18–29">18–29</button>
+            <button type="button" class="active" data-value="30–44">30–44</button>
+            <button type="button" data-value="45–59">45–59</button>
+            <button type="button" data-value="60+">60+</button>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Træningserfaring</legend>
+          <div class="segmented three" id="level-options">
+            <button type="button" data-value="Begynder">Begynder</button>
+            <button type="button" class="active" data-value="Let øvet">Let øvet</button>
+            <button type="button" data-value="Øvet">Øvet</button>
+          </div>
+        </fieldset>
+
+        <label class="field-label" for="session-type">Holdtype</label>
+        <div class="select-wrap"><select id="session-type"><option>Hele kroppen</option><option>Styrke & puls</option><option>Core & glutes</option><option>Low impact</option></select></div>
+
+        <label class="field-label" for="equipment">Primært udstyr</label>
+        <div class="select-wrap"><select id="equipment"><option>Kropsvægt</option><option>Måtte</option><option selected>Håndvægte</option><option>Elastik</option></select></div>
+
+        <div class="duration-field">
+          <label for="session-duration">Træningssessionens varighed</label>
+          <div class="duration-input"><input id="session-duration" type="number" min="20" max="180" step="1" value="60" inputmode="numeric" aria-describedby="duration-help"><span>min</span></div>
+          <p id="duration-help">Vælg præcist antal minutter fra 20 til 180. Programmet fordeler tiden automatisk.</p>
+        </div>
+
+        <div class="range-field">
+          <div><label for="warmup">Opvarmning</label><output id="warmup-output">8 min</output></div>
+          <input id="warmup" type="range" min="5" max="10" step="1" value="8">
+          <div class="range-scale"><span>5</span><span>10 min</span></div>
+        </div>
+
+        <div class="range-field">
+          <div><label for="intensity">Mål for intensitet</label><output id="intensity-output">7 / 10</output></div>
+          <input id="intensity" type="range" min="3" max="9" step="1" value="7">
+          <div class="range-scale"><span>Rolig</span><span>Hård</span></div>
+        </div>
+
+        <label class="field-label" for="music">Musiksmag</label>
+        <div class="select-wrap spotify-select"><select id="music"><option>Pop</option><option>Elektronisk</option><option>Hip-hop / R&amp;B</option><option>Rock</option><option>80'er &amp; 90'er</option><option>Danske hits</option></select><span class="spotify-dot" aria-hidden="true"></span></div>
+
+        <button class="generate-button" id="generate" type="button">Generér nyt forslag <span aria-hidden="true">→</span></button>
+      </aside>
+
+      <div id="program" class="program-panel">
+        <div class="program-heading">
+          <div><div class="section-label"><span>02</span> Dit forslag</div><h2 id="program-title">Hele kroppen</h2><p id="program-meta"></p></div>
+          <div class="total-time"><strong id="total-time">60</strong><span>Min</span></div>
+        </div>
+        <div class="adaptation-note"><span aria-hidden="true">i</span><p id="age-note"></p></div>
+        <section class="print-music-sheet" id="print-music-sheet" aria-label="Musikforslag til PDF"></section>
+        <div class="visual-guide-note"><span aria-hidden="true">+</span><p><strong>Se udførelsen:</strong> Åbn en øvelse for at se start- og bevægelsesposition samt de aktive muskelgrupper med latinske navne.</p></div>
+        <div class="timeline" id="program-timeline" aria-live="polite"></div>
+        <div class="program-actions">
+          <button type="button" class="secondary-button" id="copy-program">Kopiér program</button>
+          <button type="button" class="secondary-button" id="print-program">Print / gem PDF</button>
+          <button type="button" class="save-button" id="save-program">Gem program</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="music-section" aria-labelledby="music-title">
+      <div class="music-intro">
+        <div class="section-label light"><span>03</span> Musikprofil</div>
+        <h2 id="music-title">Tydelig takt.<br><em>Den rigtige energi.</em></h2>
+        <p>Spotify-forslagene tilpasses musiksmag, aldersprofil og intensitet. En stabil 4/4-takt gør musikken nem at følge, mens BPM-zonerne skaber en naturlig energikurve gennem timen.</p>
+        <a class="spotify-button" id="spotify-main" href="https://open.spotify.com/" target="_blank" rel="noreferrer"><span class="spotify-mark" aria-hidden="true">●</span> Find på Spotify <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="music-plan" id="music-plan"></div>
+    </section>
+
+    <section class="method-section">
+      <div class="section-label"><span>04</span> Faglig metode</div>
+      <div class="method-grid">
+        <div class="method-heading"><h2>Fra brief<br>til <em>god instruktion.</em></h2></div>
+        <article class="method-card"><span>01</span><h3>Forklar</h3><p>Nævn øvelsen, formålet og de vigtigste tekniske fokuspunkter.</p></article>
+        <article class="method-card"><span>02</span><h3>Vis</h3><p>Demonstrér 3–5 rolige gentagelser fra en synlig position.</p></article>
+        <article class="method-card"><span>03</span><h3>Observér</h3><p>Se deltagerne fra flere vinkler og hold overblik over hele holdet.</p></article>
+        <article class="method-card"><span>04</span><h3>Tilpas</h3><p>Giv én regression og én progression, så alle kan deltage meningsfuldt.</p></article>
+      </div>
+      <div class="source-note"><strong>Fagligt grundlag</strong><span>Oplæg om opvarmning · Træningsinstruktion · Holdcertificeringseksempler · Fitness og styrketræning, 5. udgave (2024) · Anatomiske betegnelser efter almindelig Terminologia Anatomica</span></div>
+    </section>
+  </main>
+
+  <footer>
+    <img src="assets/images/next-logo.png" alt="NEXT Uddannelse København">
+    <p>Et planlægningsværktøj til undervisning på fitnessuddannelsen.</p>
+    <span>NEXT · Fitness · Træningslære</span>
+  </footer>
+</body>
+</html>
