@@ -32,13 +32,43 @@ INDHOLD
   oprindelige billedbaggrund er erstattet af samme råhvide farve som hele
   billedrammen, så der ikke ses en indre rektangulær kasse.
 - Detaljeret anatomisk illustration af aktive muskelgrupper med navne på latin og dansk.
+- Muskelangivelserne er gennemgået for alle 38 øvelser. Glute bridge viser
+  gluteus maximus som primær, ischiocrurales som medvirkende og transversus
+  abdominis som stabiliserende uden fejlagtig markering af forlåret.
+- Anatomifigurerne er centreret med en rolig, ensartet margen til billedrammen.
+- Muskelmarkeringerne bruger en gennemsigtig rød toning, så muskelfibre,
+  konturer og skygger fortsat er synlige gennem farven.
+- Step-up, chest press, incline push-up og Romanian deadlift har korrigerede
+  start-/slutpositioner og ensartet placering af udstyr.
+- Reverse lunge, bear hold, fast feet, mountain climber, low-impact burpee,
+  side plank og walkout er desuden korrigeret for kameravinkel og tydelighed.
+  Hele serien på 38 billeder er gennemgået for tilsvarende perspektiv-,
+  proportions- og kontinuitetsfejl.
 - Spotify-forslag med tydelig 4/4-takt og BPM-zoner til timens tre faser.
 - Direkte Spotify-søgninger åbnes i en ny browserfane.
+- Et komplet opgaveværksted til NEXT-opgaven "Small Group Training".
+- Opgaveværkstedet er opdelt i fire rolige trin, og kun ét trin er åbent ad
+  gangen, så siden forbliver overskuelig.
+- Knap til at anvende opgavekravet med 2-3 deltagere og præcis 55 minutter.
+- Udfyldelige deltagerprofiler, faglige begrundelser, organisering,
+  arbejds-/pausetider, intensitetsstyring, instruktion og praktisk evaluering.
+- Automatisk minut-for-minut-plan, der følger det genererede program.
+- Redigerbar angivelse af gentagelser eller arbejdstid for hver øvelse.
+- Besvarelsestjek, som viser hvilke opgavepunkter der stadig mangler.
+- Lokal lagring og kopiering omfatter både program og opgavebesvarelse.
 - Ved Print / gem PDF åbnes alle øvelser automatisk, så illustrationer og
   muskelgrupper kommer med i PDF-filen. Den valgte musikprofil, BPM-zoner og
   klikbare Spotify-forslag til alle tre faser vises direkte på PDF'ens første
-  side før øvelsesprogrammet. Hvert understreget musikforslag er ét enkelt,
-  aktivt link til en Spotify-søgning efter præcis det viste forslag.
+  del før øvelsesprogrammet. Opgavebesvarelsen, deltagerprofilerne,
+  minut-for-minut-planen og en øvelsesoversigt med dosering, progression og
+  regression medtages også. Hvert understreget musikforslag er ét enkelt,
+  aktivt link til en Spotify-søgning efter præcis det viste forslag. Linkene
+  er indstillet til at åbne i en ny fane.
+- PDF-printet placerer øvelserne i faste par med præcis to komplette øvelser
+  pr. A4-side. Kortbredde, farver, instruktioner, illustrationer og
+  muskeloversigter bevares.
+- "Praktisk afprøvning" placeres som PDF'ens sidste, separate A4-side med
+  skrive-linjer og god plads til kommentarer.
 
 VIGTIGT OM AKTIVE LINKS I PDF
 -----------------------------
@@ -47,6 +77,15 @@ Vælg browserens destination "Gem som PDF" i udskriftsvinduet. Undgå
 "Microsoft Print to PDF", da denne Windows-printer kan fjerne hyperlinks fra
 PDF-filen. Åbn den gemte PDF i Microsoft Edge, Google Chrome eller Adobe
 Acrobat Reader, og klik på det understregede musikforslag.
+
+Knappen "Print opgave / PDF" forbereder hele dokumentet i A4-portrætformat og
+giver filen et navn som NEXT-traeningsplan-ÅÅÅÅ-MM-DD.pdf. Browseren åbner
+derefter udskriftsvinduet, hvor destinationen skal være "Gem som PDF".
+
+En PDF-læser kan vælge at tilsidesætte hjemmesidens indstilling om en ny fane.
+Hvis linket erstatter PDF-fanen i Chrome eller Edge, åbnes det sikkert i en ny
+fane med Ctrl + klik eller ved at klikke med musens midterste knap. Åbnes PDF'en
+i Adobe Acrobat Reader, forbliver PDF'en åben, mens Spotify åbnes i browseren.
 
 GITHUB PAGES
 ------------

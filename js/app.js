@@ -6,12 +6,34 @@
     level: "Let øvet",
     sessionType: "Hele kroppen",
     music: "Pop",
-    sessionMinutes: 60,
+    sessionMinutes: 55,
     warmupMinutes: 8,
     intensity: 7,
     equipment: "Håndvægte",
     version: 0,
-    program: []
+    program: [],
+    assignment: {
+      title: "Small Group Training",
+      participantCount: "3",
+      participants: [
+        { name: "", profile: "", needs: "" },
+        { name: "", profile: "", needs: "" },
+        { name: "", profile: "", needs: "" }
+      ],
+      purpose: "At forbedre deltagernes helkropsstyrke og kondition gennem en overskuelig træning, hvor alle kan arbejde på deres eget niveau.",
+      formRationale: "Stationstræning er valgt, fordi tre deltagere kan være aktive samtidig, mens instruktøren kan observere, coache og tilpasse belastningen individuelt.",
+      warmupRationale: "Intensiteten øges gradvist fra rolige, store bevægelser til øvelser, der ligner hoveddelens bevægelsesmønstre. Tempo og bevægeudslag øges trinvis.",
+      warmupConnection: "Opvarmningen forbereder hofter, knæ, skuldre og core til squat-, pres-, træk- og stabilitetsøvelserne i hoveddelen.",
+      cooldownRationale: "Tempoet sænkes gradvist, hvorefter deltagerne arbejder med rolig vejrtrækning og bevægelighed. Timen afsluttes med kort fælles feedback.",
+      smallGroupRationale: "Deltagerne arbejder som en gruppe med fælles tidsstyring, makkerfeedback og rotation mellem stationer. Instruktøren følger hver deltager og giver individuelle regressioner og progressioner.",
+      organization: "Tre stationer placeres i en trekant med god afstand. Udstyret klargøres før start, og hver deltager begynder ved sin egen station.",
+      workRest: "Der arbejdes 40 sekunder og skiftes i 20 sekunder. Efter en hel runde gives en kort fælles pause og ny instruktion før næste runde.",
+      activeParticipants: "Alle har en fast station eller en aktiv makkerrolle. Ingen venter på udstyr, og pauser bruges til let bevægelse, feedback eller klargøring.",
+      intensityControl: "Intensiteten styres med RPE, taletesten og observation af teknik. Belastning, tempo, bevægeudslag, arbejdstid eller pause ændres ved behov.",
+      instruction: "Hver øvelse forklares kort, demonstreres fra en synlig position og følges af ét tydeligt cue. Der gives konkret, anerkendende feedback undervejs.",
+      logistics: "Tid til demonstration, stationsskift, justering af udstyr og vand er indregnet i blokkenes varighed og minutplanen.",
+      practicalNotes: ""
+    }
   };
 
   const muscleGroups = {
@@ -26,6 +48,9 @@
     lats: { latin: "M. latissimus dorsi", danish: "Brede rygmuskel" },
     upperBack: { latin: "M. trapezius", danish: "Kappemusklen" },
     delts: { latin: "M. deltoideus", danish: "Skuldermuskel" },
+    frontDelts: { latin: "M. deltoideus (pars clavicularis)", danish: "Forreste skulder" },
+    rearDelts: { latin: "M. deltoideus (pars spinalis)", danish: "Bagerste skulder" },
+    rhomboids: { latin: "Mm. rhomboidei", danish: "Rombemusklerne" },
     biceps: { latin: "M. biceps brachii", danish: "Forside overarm" },
     triceps: { latin: "M. triceps brachii", danish: "Bagside overarm" },
     abs: { latin: "M. rectus abdominis", danish: "Lige mavemuskel" },
@@ -42,10 +67,10 @@
     "Arm circles": guide("pull", "Stå højt med armene ud til siden.", "Før armene i rolige, gradvist større cirkler.", ["delts", "upperBack", "chest"]),
     "World's greatest stretch": guide("lungeReach", "Træd frem i en lang lunge med hånden i gulvet.", "Rotér brystkassen og stræk armen mod loftet.", ["hipFlexors", "hamstrings", "glutes", "obliques"]),
     "Step jack": guide("jack", "Stå med samlede fødder og armene nede.", "Træd ud til siden, mens armene føres op.", ["gluteMedius", "calves", "delts", "deepCore"]),
-    "Walkout": guide("walkout", "Stå højt og fold frem fra hoften.", "Gå med hænderne ud til en stabil planke.", ["hamstrings", "abs", "delts", "chest"]),
-    "Boxing punches": guide("punch", "Stå i gardering med bløde knæ.", "Rotér fra hoften og stræk slagarmen frem.", ["delts", "chest", "triceps", "obliques"]),
+    "Walkout": guide("walkout", "Stå højt og fold frem fra hoften.", "Gå med hænderne ud til en stabil planke.", ["hamstrings", "abs", "frontDelts", "chest"]),
+    "Boxing punches": guide("punch", "Stå i gardering med bløde knæ.", "Rotér fra hoften og stræk slagarmen frem.", ["frontDelts", "chest", "triceps", "obliques"]),
     "Lateral step + reach": guide("lateral", "Stå højt med armene afslappet.", "Træd bredt til siden og ræk diagonalt.", ["gluteMedius", "adductors", "quads", "obliques"]),
-    "Glute bridge": guide("bridge", "Lig på ryggen med bøjede knæ og fødder i gulvet.", "Pres gennem hælene og løft hoften uden at overstrække.", ["glutes", "hamstrings", "deepCore"]),
+    "Glute bridge": guide("bridge", "Lig på ryggen med bøjede knæ og fødder i gulvet.", "Pres gennem hælene og løft hoften uden at overstrække.", ["glutes", "hamstrings", "deepCore"], ["Primær", "Medvirkende", "Stabiliserende"]),
     "Goblet squat": guide("squat", "Stå med vægten tæt ved brystet.", "Sæt hoften ned og tilbage med knæ over tæer.", ["quads", "glutes", "hamstrings", "deepCore"]),
     "Reverse lunge": guide("lunge", "Stå højt med parallelle fødder.", "Træd tilbage og sænk det bagerste knæ kontrolleret.", ["quads", "glutes", "hamstrings", "calves"]),
     "Romanian deadlift": guide("hinge", "Stå med vægtene tæt foran lårene.", "Skub hoften tilbage med lang ryg og let bøjede knæ.", ["hamstrings", "glutes", "erectors", "lats"]),
@@ -53,27 +78,27 @@
     "Step-up": guide("step", "Placér hele foden på trinnet.", "Pres gennem standbenet og stræk hoften i toppen.", ["quads", "glutes", "hamstrings", "calves"]),
     "Bent-over row": guide("hingePull", "Hæng fra hoften med lang ryg og strakte arme.", "Træk albuerne tilbage og saml skulderbladene.", ["lats", "upperBack", "biceps", "erectors"]),
     "Shoulder press": guide("press", "Hold vægtene ved skuldrene og spænd maven.", "Pres lodret op uden at svaje i lænden.", ["delts", "triceps", "upperBack", "deepCore"]),
-    "Incline push-up": guide("pushup", "Placér hænderne på en stabil forhøjning.", "Bøj albuerne og sænk brystet som én samlet enhed.", ["chest", "triceps", "delts", "abs"]),
-    "Band pull-apart": guide("pull", "Hold elastikken foran brystet med strakte arme.", "Før armene ud og saml skulderbladene.", ["upperBack", "delts", "lats"]),
-    "Chest press": guide("floorPress", "Lig stabilt med albuerne bøjet og vægtene over albuerne.", "Pres vægtene op over brystet uden at løfte skuldrene.", ["chest", "triceps", "delts"]),
-    "Half-kneeling halo": guide("halo", "Stå i halvt knælende position med vægten foran brystet.", "Før vægten roligt rundt om hovedet med stabil torso.", ["delts", "triceps", "obliques", "deepCore"]),
+    "Incline push-up": guide("pushup", "Placér hænderne på en stabil forhøjning.", "Bøj albuerne og sænk brystet som én samlet enhed.", ["chest", "triceps", "frontDelts", "abs"]),
+    "Band pull-apart": guide("pull", "Hold elastikken foran brystet med strakte arme.", "Før armene ud og saml skulderbladene.", ["rearDelts", "rhomboids", "upperBack"]),
+    "Chest press": guide("floorPress", "Lig stabilt med albuerne bøjet og vægtene over albuerne.", "Pres vægtene op over brystet uden at løfte skuldrene.", ["chest", "triceps", "frontDelts"]),
+    "Half-kneeling halo": guide("halo", "Stå i halvt knælende position med vægten foran brystet.", "Før vægten roligt rundt om hovedet med stabil torso.", ["delts", "upperBack", "obliques", "deepCore"]),
     "Dead bug": guide("deadbug", "Lig på ryggen med hofter og knæ i 90 grader.", "Stræk modsat arm og ben uden at lænden løfter sig.", ["deepCore", "abs", "hipFlexors"]),
-    "Bird dog": guide("quadruped", "Stå på alle fire med neutral ryg.", "Stræk modsat arm og ben, mens bækkenet holdes roligt.", ["erectors", "glutes", "delts", "deepCore"]),
-    "Plank": guide("plank", "Placér albuer under skuldre og knæ i gulvet.", "Stræk benene og hold kroppen i en lang linje.", ["deepCore", "abs", "delts", "glutes"]),
+    "Bird dog": guide("quadruped", "Stå på alle fire med neutral ryg.", "Stræk modsat arm og ben, mens bækkenet holdes roligt.", ["erectors", "glutes", "frontDelts", "deepCore"]),
+    "Plank": guide("plank", "Placér albuer under skuldre og knæ i gulvet.", "Stræk benene og hold kroppen i en lang linje.", ["deepCore", "abs", "frontDelts", "glutes"]),
     "Russian twist": guide("seatedTwist", "Sid højt med let bøjede knæ og lang ryg.", "Rotér brystkassen samlet fra side til side.", ["obliques", "abs", "hipFlexors"]),
-    "Bear hold": guide("bear", "Stå på alle fire med knæ under hofter.", "Løft knæene få centimeter og hold ryggen stille.", ["deepCore", "quads", "delts", "hipFlexors"]),
+    "Bear hold": guide("bear", "Stå på alle fire med knæ under hofter.", "Løft knæene få centimeter og hold ryggen stille.", ["deepCore", "quads", "frontDelts", "hipFlexors"]),
     "Side plank": guide("sidePlank", "Lig på siden med albuen under skulderen.", "Pres hoften op og skab en lang linje gennem kroppen.", ["obliques", "gluteMedius", "delts", "deepCore"]),
     "Skater step": guide("skater", "Stå med bløde knæ og vægten midt på foden.", "Træd eller hop sidelæns og land kontrolleret.", ["gluteMedius", "quads", "glutes", "calves"]),
-    "Mountain climber": guide("mountain", "Start i høj planke med skuldrene over hænderne.", "Før ét knæ frem uden at løfte eller rotere hoften.", ["abs", "hipFlexors", "delts", "chest"]),
+    "Mountain climber": guide("mountain", "Start i høj planke med skuldrene over hænderne.", "Før ét knæ frem uden at løfte eller rotere hoften.", ["abs", "hipFlexors", "frontDelts", "triceps"]),
     "Fast feet": guide("fastFeet", "Stå let forover med bløde knæ.", "Tag korte, hurtige skridt og bevar en rolig overkrop.", ["calves", "quads", "hipFlexors", "deepCore"]),
     "Squat + knee drive": guide("squatKnee", "Sæt hoften tilbage i en stabil squat.", "Rejs dig og før ét knæ mod modsatte albue.", ["quads", "glutes", "hipFlexors", "obliques"]),
-    "Low-impact burpee": guide("burpee", "Stå foran måtten med bløde knæ.", "Sæt hænderne ned og træd tilbage til en stabil planke.", ["quads", "glutes", "chest", "abs"]),
-    "Shadow boxing": guide("punch", "Stå i gardering med hænderne ved hagen.", "Slå kontrolleret frem og før hånden hurtigt tilbage.", ["delts", "chest", "triceps", "obliques"]),
-    "Knee to chest": guide("kneeChest", "Lig på ryggen med begge ben lange.", "Træk ét knæ roligt mod brystet uden at løfte hovedet.", ["glutes", "hamstrings", "erectors"]),
+    "Low-impact burpee": guide("burpee", "Stå foran måtten med bløde knæ.", "Sæt hænderne ned og træd tilbage til en stabil planke.", ["quads", "glutes", "frontDelts", "abs"]),
+    "Shadow boxing": guide("punch", "Stå i gardering med hænderne ved hagen.", "Slå kontrolleret frem og før hånden hurtigt tilbage.", ["frontDelts", "chest", "triceps", "obliques"]),
+    "Knee to chest": guide("kneeChest", "Lig på ryggen med begge ben lange.", "Træk ét knæ roligt mod brystet uden at løfte hovedet.", ["glutes", "erectors"]),
     "Supine spinal twist": guide("spinalTwist", "Lig på ryggen med knæene bøjet.", "Før knæene til siden, mens skuldrene bliver i gulvet.", ["obliques", "erectors", "glutes"]),
     "Hip flexor stretch": guide("lungeReach", "Stå i en lang, stabil splitposition.", "Sænk hoften frem med let bagudkip af bækkenet.", ["hipFlexors", "quads", "glutes"]),
     "Hamstring stretch": guide("hamStretch", "Stå med det ene ben let foran.", "Skub hoften tilbage og fold frem med lang ryg.", ["hamstrings", "calves", "erectors"]),
-    "Chest opener": guide("pull", "Stå højt med hænderne samlet bag kroppen.", "Før armene let bagud og løft brystbenet.", ["chest", "delts", "biceps"])
+    "Chest opener": guide("pull", "Stå højt med hænderne samlet bag kroppen.", "Før armene let bagud og løft brystbenet.", ["chest", "frontDelts", "biceps"])
   };
 
   const exerciseImages = {
@@ -117,8 +142,8 @@
     "Chest opener": "chest-opener.png"
   };
 
-  function guide(visual, start, finish, muscles) {
-    return { visual, start, finish, muscles };
+  function guide(visual, start, finish, muscles, roles = []) {
+    return { visual, start, finish, muscles, roles };
   }
 
   const exercisePools = {
@@ -215,6 +240,32 @@
     return { descriptor, warm, work, cool, query };
   }
 
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function answerHtml(value, emptyText = "Ikke udfyldt endnu") {
+    const text = String(value ?? "").trim();
+    return escapeHtml(text || emptyText).replaceAll("\n", "<br>");
+  }
+
+  function dosageFor(pool) {
+    if (pool === "warmup") return "45 sek. arbejde + 15 sek. skift";
+    if (pool === "conditioning") return "40 sek. arbejde + 20 sek. skift";
+    if (pool === "core") return "30-40 sek. kontrolleret arbejde";
+    if (pool === "cooldown") return "30-45 sek. pr. side eller position";
+    return "10-12 kontrollerede gentagelser";
+  }
+
+  function addDosage(exercises, pool) {
+    return exercises.map(exercise => ({ ...exercise, dosage: exercise.dosage || dosageFor(pool) }));
+  }
+
   function rotate(items, shift) {
     const offset = ((shift % items.length) + items.length) % items.length;
     return items.slice(offset).concat(items.slice(0, offset));
@@ -249,7 +300,7 @@
   function createProgram() {
     const ageShift = state.age === "60+" ? 0 : state.age === "45–59" ? 2 : state.age === "30–44" ? 4 : 6;
     const timing = sessionDurations();
-    const warmup = rotate(eligible(exercisePools.warmup), state.version + ageShift).slice(0, state.warmupMinutes);
+    const warmup = addDosage(rotate(eligible(exercisePools.warmup), state.version + ageShift).slice(0, state.warmupMinutes), "warmup");
     const result = [
       block("arrival", "00", "Velkomst & briefing", "Skab tryghed og retning", timing.arrival, "Præsentér mål, udstyr, dagens intensitet og alternativer.", [], null),
       block("warmup", "01", "Gradvis opvarmning", "Almen → specifik", timing.warmup, `${state.warmupMinutes} øvelser á ca. 60 sek. Intensitet 3 → ${Math.min(state.intensity, 7)} / 10.`, warmup, "warmup")
@@ -258,12 +309,12 @@
     templates[state.sessionType].forEach((item, index) => {
       const duration = timing.main[index];
       const exerciseCount = duration <= 4 ? 2 : duration <= 8 ? 3 : 4;
-      const exercises = rotate(eligible(exercisePools[item.pool]), state.version + index * 2 + ageShift).slice(0, exerciseCount);
+      const exercises = addDosage(rotate(eligible(exercisePools[item.pool]), state.version + index * 2 + ageShift).slice(0, exerciseCount), item.pool);
       result.push(block(`main-${index}`, `0${index + 2}`, item.title, item.eyebrow, duration, mainProtocol(duration), exercises, item.pool));
     });
 
     const cooldownExercises = timing.cooldown <= 4 ? 3 : timing.cooldown <= 6 ? 4 : 5;
-    result.push(block("cooldown", "05", "Nedvarmning & afrunding", "Ro, vejrtrækning og feedback", timing.cooldown, "Gradvis lavere puls, rolige stræk og kort fælles evaluering.", rotate(exercisePools.cooldown, state.version).slice(0, cooldownExercises), "cooldown"));
+    result.push(block("cooldown", "05", "Nedvarmning & afrunding", "Ro, vejrtrækning og feedback", timing.cooldown, "Gradvis lavere puls, rolige stræk og kort fælles evaluering.", addDosage(rotate(exercisePools.cooldown, state.version).slice(0, cooldownExercises), "cooldown"), "cooldown"));
     return result;
   }
 
@@ -362,28 +413,38 @@
     hamstrings: '<ellipse cx="998" cy="680" rx="54" ry="122"/><ellipse cx="1138" cy="680" rx="54" ry="122"/>',
     glutes: '<ellipse cx="1003" cy="550" rx="76" ry="64"/><ellipse cx="1130" cy="550" rx="76" ry="64"/>',
     gluteMedius: '<ellipse cx="976" cy="514" rx="56" ry="39"/><ellipse cx="1156" cy="514" rx="56" ry="39"/>',
-    calves: '<ellipse cx="400" cy="850" rx="38" ry="91"/><ellipse cx="547" cy="850" rx="38" ry="91"/><ellipse cx="1000" cy="850" rx="39" ry="91"/><ellipse cx="1138" cy="850" rx="39" ry="91"/>',
+    calves: '<ellipse cx="1000" cy="850" rx="39" ry="91"/><ellipse cx="1138" cy="850" rx="39" ry="91"/>',
     hipFlexors: '<ellipse cx="430" cy="530" rx="31" ry="63"/><ellipse cx="520" cy="530" rx="31" ry="63"/>',
     adductors: '<ellipse cx="449" cy="679" rx="30" ry="120"/><ellipse cx="504" cy="679" rx="30" ry="120"/>',
     chest: '<ellipse cx="476" cy="311" rx="151" ry="92"/>',
     lats: '<path d="M907 325 Q1064 260 1222 325 L1174 516 Q1064 468 956 516 Z"/>',
     upperBack: '<path d="M910 250 Q1064 188 1218 250 L1150 403 Q1064 358 978 403 Z"/>',
     delts: '<ellipse cx="320" cy="286" rx="54" ry="69"/><ellipse cx="633" cy="286" rx="54" ry="69"/><ellipse cx="902" cy="286" rx="54" ry="69"/><ellipse cx="1227" cy="286" rx="54" ry="69"/>',
+    frontDelts: '<ellipse cx="320" cy="286" rx="54" ry="69"/><ellipse cx="633" cy="286" rx="54" ry="69"/>',
+    rearDelts: '<ellipse cx="902" cy="286" rx="54" ry="69"/><ellipse cx="1227" cy="286" rx="54" ry="69"/>',
+    rhomboids: '<path d="M1000 300 L1053 326 L1027 430 L972 388 Z"/><path d="M1128 300 L1075 326 L1101 430 L1156 388 Z"/>',
     biceps: '<ellipse cx="283" cy="418" rx="39" ry="87"/><ellipse cx="670" cy="418" rx="39" ry="87"/>',
     triceps: '<ellipse cx="847" cy="422" rx="39" ry="91"/><ellipse cx="1281" cy="422" rx="39" ry="91"/>',
     abs: '<rect x="419" y="384" width="114" height="206" rx="48"/>',
     obliques: '<path d="M361 373 Q415 400 420 520 L395 596 Q343 525 349 420 Z"/><path d="M592 373 Q538 400 533 520 L558 596 Q610 525 604 420 Z"/>',
     erectors: '<rect x="1024" y="332" width="31" height="272" rx="15"/><rect x="1072" y="332" width="31" height="272" rx="15"/>',
-    deepCore: '<ellipse cx="476" cy="536" rx="116" ry="70"/>',
-    spinalMobility: '<rect x="1048" y="270" width="34" height="343" rx="17"/>'
+    deepCore: '<path d="M382 447 Q476 421 570 447 L557 542 Q476 565 395 542 Z"/>',
+    spinalMobility: '<rect x="1030" y="350" width="18" height="252" rx="9"/><rect x="1080" y="350" width="18" height="252" rx="9"/>'
   };
+
+  let anatomyMaskSequence = 0;
 
   function anatomySvg(keys) {
     const highlights = keys.map(key => muscleHighlights[key] || "").join("");
+    const maskId = `anatomy-body-mask-${++anatomyMaskSequence}`;
     return `<div class="anatomy-visual">
-      <img src="assets/images/anatomy-base.png" alt="Anatomisk illustration af kroppens muskulatur set forfra og bagfra">
-      <svg class="anatomy-svg" viewBox="0 0 1536 1024" role="img" aria-label="De primære muskelgrupper er fremhævet med orange"><g class="anatomy-highlight">${highlights}</g></svg>
-      <span class="anatomy-front">FORSIDE</span><span class="anatomy-back">BAGSIDE</span>
+      <div class="anatomy-figure">
+        <img src="assets/images/anatomy-base.png" alt="Anatomisk illustration af kroppens muskulatur set forfra og bagfra">
+        <svg class="anatomy-svg" viewBox="0 0 1536 1024" role="img" aria-label="De primære muskelgrupper er fremhævet med orange">
+          <defs><mask id="${maskId}" maskUnits="userSpaceOnUse" x="0" y="0" width="1536" height="1024"><image href="assets/images/anatomy-base.png" x="0" y="0" width="1536" height="1024" preserveAspectRatio="xMidYMid meet" /></mask></defs>
+          <g class="anatomy-highlight" mask="url(#${maskId})">${highlights}</g>
+        </svg>
+      </div>
     </div>`;
   }
 
@@ -391,7 +452,6 @@
     const item = exercise.guide || guide("march", "Start i en stabil position.", "Udfør bevægelsen kontrolleret.", ["deepCore"]);
     const image = exerciseImages[exercise.name] || "march.png";
     return `<section class="exercise-learning" aria-label="Udførelse og muskelgrupper for ${exercise.name}">
-      <div class="learning-heading"><div><span>BEVÆGELSE</span><h4>Sådan udføres øvelsen</h4></div><p>To nøglepositioner – bevæg roligt og kontrolleret mellem dem.</p></div>
       <div class="exercise-learning-grid">
         <div class="movement-panel">
           <div class="movement-visual"><img src="assets/images/exercises/${image}" alt="${exercise.name} vist i start- og slutposition"><span class="start-label">01 · START</span><span class="finish-label">02 · BEVÆGELSE</span></div>
@@ -400,7 +460,7 @@
         <aside class="muscle-panel">
           <div><span>PRIMÆRE MUSKELGRUPPER</span><h4>Aktive muskler</h4></div>
           ${anatomySvg(item.muscles)}
-          <ul>${item.muscles.map(key => `<li><i aria-hidden="true"></i><div><strong>${muscleGroups[key].latin}</strong><small>${muscleGroups[key].danish}</small></div></li>`).join("")}</ul>
+          <ul>${item.muscles.map((key, index) => `<li><i aria-hidden="true"></i><div><strong>${muscleGroups[key].latin}</strong><small>${item.roles[index] ? `${item.roles[index]} · ` : ""}${muscleGroups[key].danish}</small></div></li>`).join("")}</ul>
         </aside>
       </div>
       <p class="illustration-note">Illustrationerne er vejledende. Tilpas altid bevægeudslag og belastning til deltageren.</p>
@@ -418,6 +478,7 @@
     document.getElementById("age-note").innerHTML = `<strong>Tilpasning til ${state.age} år:</strong> ${ageNote()}`;
     renderProgram();
     renderMusic();
+    renderAssignment();
   }
 
   function renderProgram() {
@@ -449,17 +510,49 @@
     timeline.querySelectorAll(".swap-button").forEach(button => {
       button.addEventListener("click", () => swapExercise(Number(button.dataset.block), Number(button.dataset.exercise)));
     });
+
+    timeline.querySelectorAll(".exercise-dose-input").forEach(input => {
+      input.addEventListener("input", () => {
+        const exercise = state.program[Number(input.dataset.block)].exercises[Number(input.dataset.exercise)];
+        exercise.dosage = input.value;
+        const doseSummary = input.closest(".exercise-row").querySelector(".exercise-dose-summary");
+        if (doseSummary) doseSummary.textContent = input.value;
+        renderPrintExercisePages();
+        renderAssignment();
+        markUnsaved();
+      });
+    });
+
+    renderPrintExercisePages();
+  }
+
+  function renderPrintExercisePages() {
+    const printContainer = document.getElementById("print-exercise-pages");
+    const exercises = state.program.flatMap((block, blockIndex) =>
+      block.exercises.map((exercise, exerciseIndex) => ({ blockIndex, exercise, exerciseIndex }))
+    );
+    const pages = [];
+
+    for (let index = 0; index < exercises.length; index += 2) {
+      const pair = exercises.slice(index, index + 2);
+      pages.push(`<section class="print-exercise-page" aria-label="Øvelser ${index + 1}-${index + pair.length}">
+        ${pair.map(({ blockIndex, exercise, exerciseIndex }) => exerciseHtml(exercise, blockIndex, exerciseIndex)).join("")}
+      </section>`);
+    }
+
+    printContainer.innerHTML = pages.join("");
   }
 
   function exerciseHtml(exercise, blockIndex, exerciseIndex) {
     return `<div class="exercise-row">
       <button class="exercise-main" type="button" aria-expanded="false">
         <span class="exercise-index">${String(exerciseIndex + 1).padStart(2, "0")}</span>
-        <span><strong>${exercise.name}</strong><small>${exercise.focus} · ${exercise.equipment}</small></span>
+        <span><strong>${exercise.name}</strong><small>${exercise.focus} · ${exercise.equipment}</small><small class="exercise-dose-summary">${escapeHtml(exercise.dosage || dosageFor(state.program[blockIndex].pool))}</small></span>
         <span class="details-toggle">+</span>
       </button>
       <button class="swap-button" type="button" data-block="${blockIndex}" data-exercise="${exerciseIndex}" aria-label="Skift ${exercise.name}" title="Skift øvelse">↻ <span>Skift</span></button>
       <div class="exercise-details" hidden>
+        <label class="exercise-dose-field"><span>Gentagelser / arbejdstid</span><input class="exercise-dose-input" type="text" value="${escapeHtml(exercise.dosage || dosageFor(state.program[blockIndex].pool))}" data-block="${blockIndex}" data-exercise="${exerciseIndex}"></label>
         <div class="coaching-grid">
           <div><span>Cue</span><p>${exercise.cue}</p></div>
           <div><span>Regression</span><p>${exercise.regression}</p></div>
@@ -478,8 +571,9 @@
     const start = Math.max(0, pool.findIndex(exercise => exercise.name === current.name));
     const used = item.exercises.map(exercise => exercise.name);
     const replacement = rotate(pool, start + 1).find(exercise => !used.includes(exercise.name)) || pool[(start + 1) % pool.length];
-    item.exercises[exerciseIndex] = replacement;
+    item.exercises[exerciseIndex] = { ...replacement, dosage: dosageFor(item.pool) };
     renderProgram();
+    renderAssignment();
     markUnsaved();
   }
 
@@ -502,12 +596,123 @@
     const printMusic = document.getElementById("print-music-sheet");
     printMusic.innerHTML = `
       <header class="print-music-header">
-        <div><span>03 · MUSIKVALG TIL HOLDTIMEN</span><h3>${state.music}</h3><p>${music.descriptor}. Tydelig 4/4-takt og en gradvis energikurve. De understregede musikforslag er aktive Spotify-links i PDF'en.</p></div>
-        <a href="${spotifySearch(music.query)}">Åbn Spotify ↗</a>
+        <div><span>03 · MUSIKVALG TIL HOLDTIMEN</span><h3>${state.music}</h3><p>${music.descriptor}. Tydelig 4/4-takt og en gradvis energikurve. Links er indstillet til en ny fane. Hvis PDF-læseren tilsidesætter det, brug Ctrl + klik.</p></div>
+        <a href="${spotifySearch(music.query)}" target="_blank" rel="noopener noreferrer">Åbn Spotify ↗</a>
       </header>
       <div class="print-music-grid">
-        ${phases.map(phase => `<article class="print-music-card"><div><span>${phase.number}</span><strong>${phase.title}</strong><small>${phase.time} · ${phase.energy}</small></div><ul>${phase.tracks.map(track => `<li><a href="${spotifySearch(track)}">${track} - Åbn på Spotify ↗</a></li>`).join("")}</ul></article>`).join("")}
+        ${phases.map(phase => `<article class="print-music-card"><div><span>${phase.number}</span><strong>${phase.title}</strong><small>${phase.time} · ${phase.energy}</small></div><ul>${phase.tracks.map(track => `<li><a href="${spotifySearch(track)}" target="_blank" rel="noopener noreferrer">${track} - Åbn på Spotify ↗</a></li>`).join("")}</ul></article>`).join("")}
       </div>`;
+  }
+
+  const assignmentLabels = {
+    purpose: "Formål med træningen",
+    formRationale: "Valg af træningsform og begrundelse",
+    warmupRationale: "Opvarmning og gradvis intensitet",
+    warmupConnection: "Bevægelser og muskelgrupper der forberedes",
+    cooldownRationale: "Nedvarmning og samlet afslutning",
+    smallGroupRationale: "Hvorfor programmet er Small Group Training",
+    organization: "Organisering, stationer og udstyr",
+    workRest: "Arbejdstid, pauser, sæt og skift",
+    activeParticipants: "Sådan holdes alle deltagere aktive",
+    intensityControl: "Intensitetsstyring og løbende tilpasning",
+    instruction: "Instruktion, demonstration og motivation",
+    logistics: "Praktiske skift, vand og justering af udstyr",
+    practicalNotes: "Observationer fra den praktiske afprøvning"
+  };
+
+  function minutePlanEntries() {
+    let start = 0;
+    return state.program.map(item => {
+      const entry = { start, end: start + item.duration, title: item.title, detail: item.protocol };
+      start = entry.end;
+      return entry;
+    });
+  }
+
+  function minutePlanHtml() {
+    return `<div class="minute-plan-table">${minutePlanEntries().map(entry => `<div><span>${entry.start}-${entry.end} min</span><p><strong>${escapeHtml(entry.title)}</strong><small>${escapeHtml(entry.detail)}</small></p></div>`).join("")}</div>`;
+  }
+
+  function assignmentRules() {
+    const assignment = state.assignment;
+    const participants = assignment.participants.slice(0, Number(assignment.participantCount));
+    const participantProfilesReady = participants.every(person => person.name.trim() && person.profile.trim() && person.needs.trim());
+    const has = (...keys) => keys.every(key => String(assignment[key] || "").trim().length >= 12);
+    return [
+      { label: "2-3 deltagerprofiler er beskrevet", done: participantProfilesReady },
+      { label: "Programmet giver præcis 55 minutter", done: state.program.reduce((sum, item) => sum + item.duration, 0) === 55 },
+      { label: "Formål og træningsform er begrundet", done: has("purpose", "formRationale") },
+      { label: "Opvarmning og nedvarmning hænger sammen med timen", done: has("warmupRationale", "warmupConnection", "cooldownRationale") },
+      { label: "Organisering, arbejdstid, pauser og skift er beskrevet", done: has("organization", "workRest", "logistics") },
+      { label: "Aktivitet, intensitet og instruktion er planlagt", done: has("activeParticipants", "intensityControl", "instruction") },
+      { label: "Small Group-formatet er fagligt forklaret", done: has("smallGroupRationale") },
+      { label: "Praktisk afprøvning er evalueret", done: has("practicalNotes") }
+    ];
+  }
+
+  function printAnswerItem(key) {
+    return `<article><h4>${assignmentLabels[key]}</h4><p>${answerHtml(state.assignment[key])}</p></article>`;
+  }
+
+  function renderPracticalPrintSheet() {
+    const total = state.program.reduce((sum, item) => sum + item.duration, 0);
+    const notes = String(state.assignment.practicalNotes || "").trim();
+    document.getElementById("print-practical-sheet").innerHTML = `
+      <header class="print-practical-header">
+        <div><span>SIDSTE SIDE · PRAKTISK AFPRØVNING</span><h2>Kommentarer efter gennemførelsen</h2><p>Notér teknik, intensitet, individuelle tilpasninger og de ændringer, I foretog undervejs.</p></div>
+        <strong>${total}<small>MIN</small></strong>
+      </header>
+      <div class="print-practical-meta"><span>${answerHtml(state.assignment.title, "Small Group Training")}</span><span>${state.assignment.participantCount} deltagere</span><span>${escapeHtml(state.sessionType)}</span></div>
+      <section class="print-practical-writing-area" aria-label="Plads til håndskrevne kommentarer">${notes ? `<p>${escapeHtml(notes)}</p>` : ""}</section>`;
+  }
+
+  function renderAssignmentPrintSummary() {
+    const assignment = state.assignment;
+    const total = state.program.reduce((sum, item) => sum + item.duration, 0);
+    const participants = assignment.participants.slice(0, Number(assignment.participantCount));
+    const exerciseRows = state.program.flatMap(block => block.exercises.map(exercise => `<tr><td>${escapeHtml(block.title)}</td><td>${escapeHtml(exercise.name)}</td><td>${escapeHtml(exercise.dosage || dosageFor(block.pool))}</td><td>${escapeHtml(exercise.regression)}</td><td>${escapeHtml(exercise.progression)}</td></tr>`)).join("");
+    document.getElementById("assignment-print-summary").innerHTML = `
+      <header class="assignment-print-header"><div><span>OPGAVEBESVARELSE</span><h2>${answerHtml(assignment.title, "Small Group Training")}</h2><p>${assignment.participantCount} deltagere · ${total} minutter · ${escapeHtml(state.sessionType)}</p></div><strong>${total}<small>MIN</small></strong></header>
+      <section class="assignment-print-section"><h3>Deltagerprofiler</h3><div class="assignment-print-participants">${participants.map((person, index) => `<article><span>0${index + 1}</span><h4>${answerHtml(person.name, `Deltager ${index + 1}`)}</h4><p><strong>Profil:</strong> ${answerHtml(person.profile)}</p><p><strong>Mål og hensyn:</strong> ${answerHtml(person.needs)}</p></article>`).join("")}</div></section>
+      <section class="assignment-print-section"><h3>Faglige valg</h3><div class="assignment-print-answers">${["purpose", "formRationale", "warmupRationale", "warmupConnection", "cooldownRationale", "smallGroupRationale"].map(printAnswerItem).join("")}</div></section>
+      <section class="assignment-print-section"><h3>Gennemførelse og styring</h3><div class="assignment-print-answers">${["organization", "workRest", "activeParticipants", "intensityControl", "instruction", "logistics"].map(printAnswerItem).join("")}</div></section>
+      <section class="assignment-print-section"><h3>Minut-for-minut-plan</h3>${minutePlanHtml()}</section>
+      <section class="assignment-print-section exercise-overview"><h3>Øvelser, dosering og niveauer</h3><table><thead><tr><th>Blok</th><th>Øvelse</th><th>Gentagelser / tid</th><th>Regression</th><th>Progression</th></tr></thead><tbody>${exerciseRows}</tbody></table></section>`;
+    renderPracticalPrintSheet();
+  }
+
+  function renderAssignment() {
+    const total = state.program.reduce((sum, item) => sum + item.duration, 0);
+    document.getElementById("assignment-total").textContent = total;
+    document.getElementById("assignment-minute-plan").innerHTML = minutePlanHtml();
+    document.querySelectorAll("[data-participant-card]").forEach(card => {
+      card.hidden = Number(card.dataset.participantCard) >= Number(state.assignment.participantCount);
+    });
+    const rules = assignmentRules();
+    const completed = rules.filter(rule => rule.done).length;
+    document.getElementById("assignment-progress").textContent = `${completed} / ${rules.length}`;
+    document.getElementById("assignment-progress-text").textContent = completed === rules.length ? "Besvarelsen opfylder alle opgavepunkter." : "De åbne punkter skal udfyldes før aflevering.";
+    document.getElementById("assignment-checklist").innerHTML = rules.map(rule => `<li class="${rule.done ? "done" : ""}"><span>${rule.done ? "✓" : "○"}</span>${escapeHtml(rule.label)}</li>`).join("");
+    renderAssignmentPrintSummary();
+  }
+
+  function syncAssignmentForm() {
+    document.querySelectorAll("[data-assignment-key]").forEach(field => {
+      field.value = state.assignment[field.dataset.assignmentKey] ?? "";
+    });
+    document.querySelectorAll("[data-participant-index]").forEach(field => {
+      const person = state.assignment.participants[Number(field.dataset.participantIndex)];
+      field.value = person?.[field.dataset.participantField] ?? "";
+    });
+  }
+
+  function assignmentText() {
+    const assignment = state.assignment;
+    const participants = assignment.participants.slice(0, Number(assignment.participantCount));
+    const answers = Object.keys(assignmentLabels).map(key => `${assignmentLabels[key]}\n${assignment[key] || "Ikke udfyldt endnu"}`).join("\n\n");
+    const minutePlan = minutePlanEntries().map(entry => `${entry.start}-${entry.end} min: ${entry.title} - ${entry.detail}`).join("\n");
+    const exercises = state.program.flatMap(block => block.exercises.map(exercise => `${block.title}: ${exercise.name} | ${exercise.dosage || dosageFor(block.pool)} | Regression: ${exercise.regression} | Progression: ${exercise.progression}`)).join("\n");
+    return `${assignment.title}\n${assignment.participantCount} deltagere · ${state.program.reduce((sum, item) => sum + item.duration, 0)} minutter\n\nDELTAGERE\n${participants.map((person, index) => `${index + 1}. ${person.name || `Deltager ${index + 1}`} | ${person.profile || "Profil ikke udfyldt"} | ${person.needs || "Mål og hensyn ikke udfyldt"}`).join("\n")}\n\n${answers}\n\nMINUT-FOR-MINUT-PLAN\n${minutePlan}\n\nØVELSER\n${exercises}`;
   }
 
   function musicTempo() {
@@ -526,19 +731,26 @@
   function markUnsaved() {
     const button = document.getElementById("save-program");
     button.classList.remove("saved");
-    button.textContent = "Gem program";
+    button.textContent = "Gem opgave";
   }
 
   function copyProgram() {
-    const text = state.program.map(item => `${item.number} ${item.title} · ${item.duration} min\n${item.exercises.map(exercise => `– ${exercise.name}`).join("\n")}`).join("\n\n");
+    copyText(assignmentText(), document.getElementById("copy-program"));
+  }
+
+  function copyAssignment() {
+    copyText(assignmentText(), document.getElementById("copy-assignment"));
+  }
+
+  function copyText(text, button) {
     if (navigator.clipboard && window.isSecureContext) {
-      navigator.clipboard.writeText(text).then(showCopied).catch(() => fallbackCopy(text));
+      navigator.clipboard.writeText(text).then(() => showCopied(button)).catch(() => fallbackCopy(text, button));
     } else {
-      fallbackCopy(text);
+      fallbackCopy(text, button);
     }
   }
 
-  function fallbackCopy(text) {
+  function fallbackCopy(text, button) {
     const area = document.createElement("textarea");
     area.value = text;
     area.style.position = "fixed";
@@ -547,21 +759,76 @@
     area.select();
     document.execCommand("copy");
     area.remove();
-    showCopied();
+    showCopied(button);
   }
 
-  function showCopied() {
-    const button = document.getElementById("copy-program");
+  function showCopied(button) {
     const original = button.textContent;
     button.textContent = "Kopieret ✓";
     window.setTimeout(() => button.textContent = original, 1600);
   }
 
+  function requestPrint(event) {
+    const button = event?.currentTarget;
+    const originalLabel = button?.textContent || "";
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Forbereder PDF …";
+    }
+    preparePrint();
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      window.print();
+      if (button) {
+        button.disabled = false;
+        button.textContent = originalLabel;
+      }
+    }));
+  }
+
+  function syncControls() {
+    document.getElementById("session-type").value = state.sessionType;
+    document.getElementById("equipment").value = state.equipment;
+    document.getElementById("music").value = state.music;
+    document.getElementById("session-duration").value = state.sessionMinutes;
+    document.getElementById("warmup").value = state.warmupMinutes;
+    document.getElementById("warmup-output").textContent = `${state.warmupMinutes} min`;
+    document.getElementById("intensity").value = state.intensity;
+    document.getElementById("intensity-output").textContent = `${state.intensity} / 10`;
+    document.querySelectorAll("#age-options button").forEach(button => button.classList.toggle("active", button.dataset.value === state.age));
+    document.querySelectorAll("#level-options button").forEach(button => button.classList.toggle("active", button.dataset.value === state.level));
+  }
+
+  function restoreSavedState() {
+    try {
+      const saved = JSON.parse(localStorage.getItem("next-training-program") || "null");
+      if (!saved?.settings) return;
+      const savedAssignment = saved.settings.assignment || {};
+      const savedParticipants = Array.isArray(savedAssignment.participants) ? savedAssignment.participants : [];
+      const defaults = state.assignment;
+      Object.assign(state, saved.settings, {
+        assignment: {
+          ...defaults,
+          ...savedAssignment,
+          participants: defaults.participants.map((person, index) => ({ ...person, ...(savedParticipants[index] || {}) }))
+        }
+      });
+      state.sessionMinutes = Math.min(180, Math.max(20, Math.round(Number(state.sessionMinutes) || 55)));
+    } catch (error) {
+      // En beskadiget lokal gemning ignoreres, så siden stadig kan åbnes.
+    }
+  }
+
   let printDetailState = [];
+  let documentTitleBeforePrint = "";
 
   function preparePrint() {
     renderMusic();
+    renderPrintExercisePages();
+    renderPracticalPrintSheet();
     if (document.body.classList.contains("printing-full-program")) return;
+    documentTitleBeforePrint = document.title;
+    const date = new Date().toISOString().slice(0, 10);
+    document.title = `NEXT-traeningsplan-${date}`;
     const details = Array.from(document.querySelectorAll(".exercise-details"));
     printDetailState = details.map(item => item.hidden);
     details.forEach(item => item.hidden = false);
@@ -573,6 +840,8 @@
     details.forEach((item, index) => item.hidden = printDetailState[index] !== false);
     document.body.classList.remove("printing-full-program");
     printDetailState = [];
+    if (documentTitleBeforePrint) document.title = documentTitleBeforePrint;
+    documentTitleBeforePrint = "";
   }
 
   function bindSegmented(id, key) {
@@ -598,9 +867,63 @@
     markUnsaved();
   }
 
+  function bindAssignmentForm() {
+    const form = document.getElementById("assignment-form");
+    form.querySelectorAll(".answer-section").forEach(section => {
+      section.addEventListener("toggle", () => {
+        if (!section.open) return;
+        form.querySelectorAll(".answer-section").forEach(other => {
+          if (other !== section) other.open = false;
+        });
+      });
+    });
+    const update = event => {
+      const field = event.target;
+      if (field.dataset.assignmentKey) {
+        state.assignment[field.dataset.assignmentKey] = field.value;
+      }
+      if (field.dataset.participantIndex !== undefined) {
+        const person = state.assignment.participants[Number(field.dataset.participantIndex)];
+        person[field.dataset.participantField] = field.value;
+      }
+      renderAssignment();
+      markUnsaved();
+    };
+    form.addEventListener("input", update);
+    form.addEventListener("change", update);
+  }
+
+  function applySmallGroupBrief() {
+    state.sessionMinutes = 55;
+    state.assignment.participantCount = "3";
+    state.version += 1;
+    syncControls();
+    syncAssignmentForm();
+    render();
+    markUnsaved();
+    document.getElementById("program").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   function initialize() {
+    restoreSavedState();
+    syncControls();
+    syncAssignmentForm();
     bindSegmented("age-options", "age");
     bindSegmented("level-options", "level");
+    bindAssignmentForm();
+
+    document.addEventListener("click", event => {
+      const link = event.target.closest('a[href^="https://open.spotify.com/"]');
+      if (!link) return;
+      event.preventDefault();
+      const spotifyWindow = window.open(link.href, "_blank", "noopener,noreferrer");
+      if (spotifyWindow) {
+        spotifyWindow.opener = null;
+        spotifyWindow.focus();
+      } else {
+        window.alert("Browseren blokerede Spotify-vinduet. Tillad pop op-vinduer for siden, og klik igen.");
+      }
+    });
 
     document.getElementById("session-type").addEventListener("change", event => { state.sessionType = event.target.value; markUnsaved(); });
     document.getElementById("equipment").addEventListener("change", event => { state.equipment = event.target.value; markUnsaved(); });
@@ -612,10 +935,10 @@
 
     document.getElementById("generate").addEventListener("click", () => { state.version += 1; render(); markUnsaved(); document.getElementById("program").scrollIntoView({ behavior: "smooth", block: "start" }); });
     document.getElementById("copy-program").addEventListener("click", copyProgram);
-    document.getElementById("print-program").addEventListener("click", () => {
-      preparePrint();
-      window.setTimeout(() => window.print(), 80);
-    });
+    document.getElementById("copy-assignment").addEventListener("click", copyAssignment);
+    document.getElementById("print-program").addEventListener("click", requestPrint);
+    document.getElementById("print-assignment").addEventListener("click", requestPrint);
+    document.getElementById("apply-small-group").addEventListener("click", applySmallGroupBrief);
     window.addEventListener("beforeprint", preparePrint);
     window.addEventListener("afterprint", restoreAfterPrint);
     document.getElementById("save-program").addEventListener("click", () => {
@@ -623,7 +946,7 @@
         localStorage.setItem("next-training-program", JSON.stringify({ settings: state, program: state.program, savedAt: new Date().toISOString() }));
         const button = document.getElementById("save-program");
         button.classList.add("saved");
-        button.textContent = "Gemt på enheden ✓";
+        button.textContent = "Opgave gemt ✓";
       } catch (error) {
         window.alert("Browseren kunne ikke gemme programmet lokalt. Brug i stedet 'Kopiér program' eller 'Print / gem PDF'.");
       }
