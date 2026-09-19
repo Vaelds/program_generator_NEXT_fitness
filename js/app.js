@@ -276,7 +276,7 @@
     const allowed = ["Kropsvægt", "Måtte", state.equipment];
     const equipped = pool.filter(item => allowed.includes(item.equipment));
     const impact = lowImpact ? equipped.filter(item => item.lowImpact) : equipped;
-    return impact.length >= 3 ? impact : equipped.length >= 3 ? equipped : pool;
+    return impact.length ? impact : equipped;
   }
 
   function sessionDurations() {
@@ -303,7 +303,7 @@
     const warmup = addDosage(rotate(eligible(exercisePools.warmup), state.version + ageShift).slice(0, state.warmupMinutes), "warmup");
     const result = [
       block("arrival", "00", "Velkomst & briefing", "Skab tryghed og retning", timing.arrival, "Præsentér mål, udstyr, dagens intensitet og alternativer.", [], null),
-      block("warmup", "01", "Gradvis opvarmning", "Almen → specifik", timing.warmup, `${state.warmupMinutes} øvelser á ca. 60 sek. Intensitet 3 → ${Math.min(state.intensity, 7)} / 10.`, warmup, "warmup")
+      block("warmup", "01", "Gradvis opvarmning", "Almen → specifik", timing.warmup, `${warmup.length} øvelser fordelt over ${state.warmupMinutes} min. Intensitet 3 → ${Math.min(state.intensity, 7)} / 10.`, warmup, "warmup")
     ];
 
     templates[state.sessionType].forEach((item, index) => {
@@ -449,6 +449,7 @@
   }
 
   function exerciseVisualHtml(exercise) {
+    if (window.NextPro) return window.NextPro.visualHTML(exercise);
     const item = exercise.guide || guide("march", "Start i en stabil position.", "Udfør bevægelsen kontrolleret.", ["deepCore"]);
     const image = exerciseImages[exercise.name] || "march.png";
     return `<section class="exercise-learning" aria-label="Udførelse og muskelgrupper for ${exercise.name}">
@@ -467,8 +468,8 @@
     </section>`;
   }
 
-  function render() {
-    state.program = createProgram();
+  function render(regenerate = true) {
+    if (regenerate || !state.program.length) state.program = createProgram();
     const totalMinutes = state.program.reduce((sum, item) => sum + item.duration, 0);
     document.getElementById("program-title").textContent = state.sessionType;
     document.getElementById("program-meta").textContent = `${state.age} år · ${state.level} · ${totalMinutes} min · intensitet ${state.intensity}/10 · ${state.equipment}`;
@@ -487,8 +488,9 @@
       <article class="program-block">
         <div class="block-number">${item.number}</div>
         <div class="block-content">
-          <header><div><p>${item.eyebrow}</p><h3>${item.title}</h3></div><div class="block-duration">${item.duration}<span>MIN</span></div></header>
-          <p class="protocol">${item.protocol}</p>
+          <header><div><p>${escapeHtml(item.eyebrow)}</p><h3>${escapeHtml(item.title)}</h3></div><div class="block-duration">${item.duration}<span>MIN</span></div></header>
+          <p class="protocol">${escapeHtml(item.protocol)}</p>
+          ${window.NextPro?.blockTools(blockIndex) || ""}
           ${item.exercises.length ? `<div class="exercise-list">${item.exercises.map((exercise, exerciseIndex) => exerciseHtml(exercise, blockIndex, exerciseIndex)).join("")}</div>` : ""}
         </div>
       </article>`).join("");
@@ -527,6 +529,7 @@
   }
 
   function renderPrintExercisePages() {
+    if (window.NextPro) return window.NextPro.renderPrint();
     const printContainer = document.getElementById("print-exercise-pages");
     const exercises = state.program.flatMap((block, blockIndex) =>
       block.exercises.map((exercise, exerciseIndex) => ({ blockIndex, exercise, exerciseIndex }))
@@ -544,6 +547,7 @@
   }
 
   function exerciseHtml(exercise, blockIndex, exerciseIndex) {
+    if (window.NextPro) return window.NextPro.exerciseHTML(exercise, blockIndex, exerciseIndex);
     return `<div class="exercise-row">
       <button class="exercise-main" type="button" aria-expanded="false">
         <span class="exercise-index">${String(exerciseIndex + 1).padStart(2, "0")}</span>
@@ -732,6 +736,7 @@
     const button = document.getElementById("save-program");
     button.classList.remove("saved");
     button.textContent = "Gem opgave";
+    document.dispatchEvent(new Event("next:change"));
   }
 
   function copyProgram() {
@@ -825,6 +830,7 @@
     renderMusic();
     renderPrintExercisePages();
     renderPracticalPrintSheet();
+    if (window.NextPro) window.NextPro.preparePrint();
     if (document.body.classList.contains("printing-full-program")) return;
     documentTitleBeforePrint = document.title;
     const date = new Date().toISOString().slice(0, 10);
@@ -912,18 +918,7 @@
     bindSegmented("level-options", "level");
     bindAssignmentForm();
 
-    document.addEventListener("click", event => {
-      const link = event.target.closest('a[href^="https://open.spotify.com/"]');
-      if (!link) return;
-      event.preventDefault();
-      const spotifyWindow = window.open(link.href, "_blank", "noopener,noreferrer");
-      if (spotifyWindow) {
-        spotifyWindow.opener = null;
-        spotifyWindow.focus();
-      } else {
-        window.alert("Browseren blokerede Spotify-vinduet. Tillad pop op-vinduer for siden, og klik igen.");
-      }
-    });
+
 
     document.getElementById("session-type").addEventListener("change", event => { state.sessionType = event.target.value; markUnsaved(); });
     document.getElementById("equipment").addEventListener("change", event => { state.equipment = event.target.value; markUnsaved(); });
@@ -952,8 +947,10 @@
       }
     });
 
-    render();
+    render(false);
   }
 
+  window.NEXTPlanner = { state, exercisePools, exerciseImages, muscleGroups, exerciseGuides, escapeHtml, anatomySvg, dosageFor, render, renderProgram, renderAssignment, renderMusic, syncControls, syncAssignmentForm, markUnsaved, preparePrint, restoreAfterPrint, requestPrint };
   document.addEventListener("DOMContentLoaded", initialize);
 }());
+
