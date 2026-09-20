@@ -584,9 +584,9 @@
   function renderMusic() {
     const music = musicProfiles[state.music];
     const bpm = musicTempo();
-    const warmupMinutes = state.program.find(item => item.id === "warmup")?.duration ?? state.warmupMinutes;
-    const workMinutes = state.program.filter(item => item.id.startsWith("main-")).reduce((sum, item) => sum + item.duration, 0);
-    const cooldownMinutes = state.program.find(item => item.id === "cooldown")?.duration ?? 7;
+    const warmupMinutes = state.program.find(item => item.id === "warmup")?.duration ?? 0;
+    const workMinutes = state.program.filter(item => !["arrival", "warmup", "cooldown"].includes(item.id)).reduce((sum, item) => sum + item.duration, 0);
+    const cooldownMinutes = state.program.find(item => item.id === "cooldown")?.duration ?? 0;
     document.getElementById("spotify-main").href = spotifySearch(music.query);
     const phases = [
       { number: "01", title: "Opvarmning", time: `${warmupMinutes} min`, tracks: music.warm, energy: `Tydelig 4/4 · ${bpm.warm}` },

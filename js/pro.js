@@ -35,7 +35,7 @@
   function write(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (_) { notify("Browseren kunne ikke gemme. Download en programfil som sikkerhedskopi.", true); return false; } }
   function snapshot() { return { format: "NEXT-training", version: 3, savedAt: new Date().toISOString(), settings: clone(S), meta: clone(meta), pdf: clone(pdf), custom: clone(custom), libraryOverrides: clone(libraryOverrides), favorites: [...favorites] }; }
   function remember() { undo.push(snapshot()); if (undo.length > 20) undo.shift(); redo = []; }
-  function refresh() { A.syncControls(); A.syncAssignmentForm(); A.render(false); syncMeta(); syncPdf(); syncTargets(); renderSaved(); updateSummary(); A.markUnsaved(); }
+  function refresh() { S.program.forEach((b, i) => b.number = String(i).padStart(2, "0")); A.syncControls(); A.syncAssignmentForm(); A.render(false); syncMeta(); syncPdf(); syncTargets(); renderSaved(); updateSummary(); A.markUnsaved(); }
   function restore(value) {
     const clean = validateSnapshot(value);
     Object.assign(S, clean.settings); meta = clean.meta; pdf = clean.pdf;
@@ -150,7 +150,7 @@
   function printDocumentHTML() {
     const ids = ["pro-print-summary", ...(pdf.assignment ? ["assignment-print-summary"] : []), ...(pdf.music ? ["print-music-sheet"] : []), "print-exercise-pages", ...(pdf.practical ? ["print-practical-sheet"] : [])];
     const content = ids.map(id => { const el = $(id).cloneNode(true); el.removeAttribute("aria-hidden"); return el.outerHTML; }).join("");
-    return `<!doctype html><html lang="da"><head><meta charset="utf-8"><base href="${h(new URL(".", document.baseURI).href)}"><title>${h(meta.title)}</title><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/pro.css"><link rel="stylesheet" href="css/print.css"></head><body class="pdf-document-preview">${content}</body></html>`;
+    return `<!doctype html><html lang="da"><head><meta charset="utf-8"><base href="${h(new URL(".", document.baseURI).href)}"><title>${h(meta.title)}</title><link rel="stylesheet" href="css/style.css?v=3.2"><link rel="stylesheet" href="css/pro.css?v=3.2"><link rel="stylesheet" href="css/print.css?v=3.2"></head><body class="pdf-document-preview">${content}</body></html>`;
   }
   async function readyFrame(frame) {
     await frame.contentDocument.fonts.ready;
@@ -357,6 +357,7 @@
     $("undo-program").onclick = () => { if (!undo.length) return; redo.push(snapshot()); restore(undo.pop()); notify("Ændringen er fortrudt."); };
     $("redo-program").onclick = () => { if (!redo.length) return; undo.push(snapshot()); restore(redo.pop()); notify("Ændringen er gendannet."); };
     $("generate").addEventListener("click", remember, true);
+    $("apply-small-group").addEventListener("click", remember, true);
     document.querySelectorAll("[data-meta]").forEach(el => el.addEventListener("input", () => { meta[el.dataset.meta] = el.value; updateSummary(); A.markUnsaved(); }));
     document.querySelectorAll("[data-pdf]").forEach(el => el.addEventListener("change", () => { pdf[el.dataset.pdf] = el.type === "checkbox" ? el.checked : el.dataset.pdf === "perPage" ? Number(el.value) : el.value; renderPrint(); A.markUnsaved(); }));
     $("pdf-preset").onchange = event => { if (event.target.value === "client") Object.assign(pdf, { assignment: false, music: false, practical: false }); if (event.target.value === "next") Object.assign(pdf, { assignment: true, music: true, practical: true }); syncPdf(); renderPrint(); A.markUnsaved(); };
