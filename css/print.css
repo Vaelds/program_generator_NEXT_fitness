@@ -1,0 +1,759 @@
+/* Shared print and on-screen document-preview styles. */
+
+
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    background: #fff;
+    font-size: 10px;
+    margin: 0;
+  }
+
+  .masthead,
+  .planner-hero,
+  .control-panel,
+  .assignment-workshop,
+  .music-section,
+  .method-section,
+  footer,
+  .program-actions,
+  .swap-button,
+  .visual-guide-note {
+    display: none !important;
+  }
+
+  .exercise-details,
+  .exercise-details[hidden] {
+    display: block !important;
+  }
+
+  .timeline {
+    display: none !important;
+  }
+
+  .print-exercise-pages {
+    break-before: page;
+    display: block !important;
+    page-break-before: always;
+  }
+
+  .print-exercise-page {
+    break-after: page;
+    break-inside: avoid;
+    display: flex;
+    flex-direction: column;
+    gap: 4mm;
+    page-break-after: always;
+    page-break-inside: avoid;
+  }
+
+  .print-exercise-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .print-exercise-page .exercise-row {
+    margin: 0;
+  }
+
+  .print-exercise-page .exercise-main {
+    min-height: 36px;
+    padding-bottom: 4px;
+    padding-top: 4px;
+  }
+
+  .print-exercise-page .exercise-details {
+    padding: 7px 9px 8px;
+  }
+
+  .print-exercise-page .exercise-dose-field {
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+  }
+
+  .print-exercise-page .coaching-grid {
+    gap: 7px;
+  }
+
+  .print-exercise-page .coaching-grid p {
+    font-size: 8px;
+    line-height: 1.25;
+    margin-top: 3px;
+  }
+
+  .print-exercise-page .exercise-learning {
+    margin-top: 6px;
+    padding-top: 6px;
+  }
+
+  .print-exercise-page .muscle-panel h4 {
+    font-size: 12px;
+  }
+
+  .print-exercise-page .exercise-learning-grid {
+    gap: 6px;
+    grid-template-columns: minmax(0, 1.55fr) minmax(170px, .85fr);
+  }
+
+  .print-exercise-page .movement-visual {
+    aspect-ratio: auto;
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 52mm;
+    padding: 3px;
+  }
+
+  .print-exercise-page .movement-visual img,
+  .print-exercise-page .anatomy-figure > img {
+    object-fit: contain;
+  }
+
+  .print-exercise-page .movement-steps > div {
+    min-height: 30px;
+    padding: 5px 7px;
+  }
+
+  .print-exercise-page .movement-steps p {
+    font-size: 7px;
+  }
+
+  .print-exercise-page .muscle-panel {
+    padding: 7px;
+  }
+
+  .print-exercise-page .anatomy-visual {
+    height: 36mm;
+    margin: 4px 0 3px;
+  }
+
+  .print-exercise-page .muscle-panel li {
+    padding: 1px 0;
+  }
+
+  .print-exercise-page .illustration-note {
+    font-size: 6.5px;
+    margin-top: 3px;
+  }
+
+  .print-practical-sheet {
+    break-after: auto !important;
+    break-before: page !important;
+    display: block !important;
+    min-height: 255mm;
+    page-break-after: auto !important;
+    page-break-before: always !important;
+  }
+
+  .print-practical-header {
+    align-items: flex-end;
+    border-bottom: 4px solid var(--navy);
+    border-top: 5px solid var(--orange);
+    display: flex;
+    gap: 12mm;
+    justify-content: space-between;
+    padding: 7mm 0 5mm;
+  }
+
+  .print-practical-header span {
+    color: var(--orange);
+    display: block;
+    font-family: var(--display);
+    font-size: 8px;
+    letter-spacing: .12em;
+  }
+
+  .print-practical-header h2 {
+    color: var(--navy);
+    font-family: var(--display);
+    font-size: 25px;
+    margin: 2mm 0 1.5mm;
+  }
+
+  .print-practical-header p {
+    color: #56616c;
+    font-size: 9px;
+    line-height: 1.45;
+    margin: 0;
+    max-width: 132mm;
+  }
+
+  .print-practical-header > strong {
+    align-items: baseline;
+    color: var(--orange);
+    display: flex;
+    flex: 0 0 auto;
+    font-family: var(--display);
+    font-size: 34px;
+    gap: 4px;
+  }
+
+  .print-practical-header > strong small {
+    color: var(--navy);
+    font-size: 8px;
+  }
+
+  .print-practical-meta {
+    border-bottom: 1px solid #c9cdcf;
+    color: #56616c;
+    display: flex;
+    font-family: var(--display);
+    font-size: 8px;
+    gap: 7mm;
+    padding: 3mm 0;
+    text-transform: uppercase;
+  }
+
+  .print-practical-meta span + span {
+    border-left: 1px solid #c9cdcf;
+    padding-left: 7mm;
+  }
+
+  .print-practical-writing-area {
+    background: repeating-linear-gradient(to bottom, #fff 0, #fff 8.8mm, #cbd0d2 8.8mm, #cbd0d2 9mm);
+    border: 1px solid #bfc4c7;
+    margin-top: 5mm;
+    min-height: 198mm;
+    padding: 4mm 5mm;
+  }
+
+  .print-practical-writing-area p {
+    color: var(--navy);
+    font-size: 9px;
+    line-height: 9mm;
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  .builder-shell {
+    display: block;
+    max-width: none;
+  }
+
+  .program-panel {
+    padding: 0;
+  }
+
+  .program-heading {
+    border-bottom-width: 4px;
+    padding-bottom: 12px;
+  }
+
+  .program-heading .section-label {
+    margin-bottom: 8px;
+  }
+
+  .program-heading h2 {
+    font-size: 34px;
+    margin-bottom: 3px;
+  }
+
+  .total-time strong {
+    font-size: 42px;
+  }
+
+  .adaptation-note {
+    margin: 12px 0 16px;
+    padding: 9px 12px;
+  }
+
+  .assignment-print-summary {
+    display: block;
+    margin: 0 0 7mm;
+  }
+
+  .assignment-print-header {
+    align-items: end;
+    background: var(--navy);
+    border-top: 4px solid var(--orange);
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5mm;
+    padding: 12px 14px;
+  }
+
+  .assignment-print-header span {
+    color: var(--mint);
+    font-family: var(--display);
+    font-size: 7px;
+    letter-spacing: .13em;
+  }
+
+  .assignment-print-header h2 {
+    font-family: var(--display);
+    font-size: 22px;
+    margin: 2px 0;
+  }
+
+  .assignment-print-header p {
+    color: #c5cdd5;
+    font-size: 8px;
+    margin: 0;
+  }
+
+  .assignment-print-header > strong {
+    align-items: baseline;
+    color: var(--orange);
+    display: flex;
+    font-family: var(--display);
+    font-size: 34px;
+    gap: 5px;
+  }
+
+  .assignment-print-header > strong small {
+    color: #fff;
+    font-size: 8px;
+  }
+
+  .assignment-print-section {
+    break-inside: avoid;
+    margin: 0 0 5mm;
+    page-break-inside: avoid;
+  }
+
+  .assignment-print-section > h3 {
+    border-bottom: 2px solid var(--navy);
+    color: var(--orange);
+    font-family: var(--display);
+    font-size: 10px;
+    letter-spacing: .08em;
+    margin: 0 0 6px;
+    padding-bottom: 4px;
+    text-transform: uppercase;
+  }
+
+  .assignment-print-participants,
+  .assignment-print-answers {
+    display: grid;
+    gap: 7px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .assignment-print-participants article,
+  .assignment-print-answers article {
+    background: #f5f2ea;
+    border: 1px solid #d6d7d4;
+    padding: 7px 8px;
+  }
+
+  .assignment-print-participants article > span {
+    color: var(--orange);
+    font-family: var(--display);
+    font-size: 7px;
+  }
+
+  .assignment-print-participants h4,
+  .assignment-print-answers h4 {
+    font-family: var(--display);
+    font-size: 9px;
+    margin: 1px 0 3px;
+  }
+
+  .assignment-print-participants p,
+  .assignment-print-answers p {
+    font-size: 7.5px;
+    line-height: 1.35;
+    margin: 2px 0 0;
+  }
+
+  .assignment-print-answers {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .assignment-print-answers.one {
+    grid-template-columns: 1fr;
+  }
+
+  .assignment-print-section .minute-plan-table {
+    display: grid;
+    gap: 0 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 0;
+  }
+
+  .assignment-print-section .minute-plan-table > div {
+    grid-template-columns: 48px minmax(0, 1fr);
+    padding: 5px 0;
+  }
+
+  .assignment-print-section .minute-plan-table strong {
+    font-size: 8px;
+  }
+
+  .assignment-print-section .minute-plan-table small {
+    font-size: 7px;
+  }
+
+  .assignment-print-section.exercise-overview {
+    break-inside: auto;
+    page-break-inside: auto;
+  }
+
+  .exercise-overview table {
+    border-collapse: collapse;
+    font-size: 7px;
+    width: 100%;
+  }
+
+  .exercise-overview thead {
+    display: table-header-group;
+  }
+
+  .exercise-overview th {
+    background: var(--navy);
+    color: #fff;
+    font-family: var(--display);
+    text-align: left;
+  }
+
+  .exercise-overview th,
+  .exercise-overview td {
+    border: 1px solid #d1d3d2;
+    padding: 4px 5px;
+    vertical-align: top;
+  }
+
+  .exercise-overview tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .program-block {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .block-number {
+    font-size: 12px;
+    padding-top: 17px;
+  }
+
+  .block-content {
+    padding: 15px 0 17px 16px;
+  }
+
+  .block-content h3 {
+    font-size: 20px;
+  }
+
+  .block-duration {
+    font-size: 23px;
+  }
+
+  .protocol {
+    margin: 6px 0 10px;
+  }
+
+  .exercise-row {
+    border: 1px solid #d7d8d4;
+    break-inside: avoid;
+    display: block;
+    margin: 0 0 7mm;
+    page-break-inside: avoid;
+  }
+
+  .exercise-main {
+    grid-template-columns: 26px 1fr;
+    min-height: 44px;
+    padding: 5px 8px;
+    pointer-events: none;
+    width: 100%;
+  }
+
+  .exercise-main .details-toggle {
+    display: none;
+  }
+
+  .exercise-main strong {
+    font-size: 13px;
+  }
+
+  .exercise-main small {
+    font-size: 9px;
+  }
+
+  .exercise-details {
+    padding: 10px;
+  }
+
+  .exercise-dose-field {
+    gap: 8px;
+    grid-template-columns: 135px minmax(0, 1fr);
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+  }
+
+  .exercise-dose-field input {
+    border: 0;
+    font-size: 9px;
+    min-height: 0;
+    padding: 0;
+  }
+
+  .coaching-grid {
+    gap: 9px;
+  }
+
+  .coaching-grid p {
+    font-size: 9px;
+    line-height: 1.35;
+  }
+
+  .exercise-learning {
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+
+  .muscle-panel h4 {
+    font-size: 14px;
+  }
+
+  .exercise-learning-grid {
+    gap: 8px;
+    grid-template-columns: minmax(0, 1.55fr) minmax(170px, .85fr);
+  }
+
+  .movement-visual {
+    aspect-ratio: 20 / 13;
+    padding: 4px;
+  }
+
+  .movement-steps > div {
+    min-height: 44px;
+    padding: 7px 9px;
+  }
+
+  .movement-steps p {
+    font-size: 8px;
+  }
+
+  .muscle-panel {
+    display: block;
+    padding: 9px;
+  }
+
+  .anatomy-visual {
+    margin: 6px 0 4px;
+  }
+
+  .muscle-panel ul {
+    margin-top: 3px;
+    padding-top: 4px;
+  }
+
+  .muscle-panel li {
+    padding: 2px 0;
+  }
+
+  .muscle-panel li strong {
+    font-size: 8px;
+  }
+
+  .muscle-panel li small,
+  .illustration-note {
+    font-size: 7px;
+  }
+
+  .illustration-note {
+    margin-top: 5px;
+  }
+
+  .print-music-sheet {
+    background: var(--navy);
+    border-top: 4px solid var(--orange);
+    break-inside: avoid;
+    color: #fff;
+    display: block !important;
+    margin: 0 0 7mm;
+    padding: 10px 12px 12px;
+    page-break-inside: avoid;
+  }
+
+  .print-music-header {
+    align-items: flex-start;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+  }
+
+  .print-music-header span {
+    color: var(--mint);
+    display: block;
+    font-family: var(--display);
+    font-size: 7px;
+    letter-spacing: .12em;
+  }
+
+  .print-music-header h3 {
+    font-family: var(--display);
+    font-size: 20px;
+    margin: 1px 0 2px;
+  }
+
+  .print-music-header p {
+    color: #c4cdd5;
+    font-size: 8px;
+    margin: 0;
+  }
+
+  .print-music-header > a {
+    background: var(--spotify);
+    color: #071b0e;
+    flex: 0 0 auto;
+    font-family: var(--display);
+    font-size: 7px;
+    padding: 7px 9px;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .print-music-grid {
+    display: grid;
+    gap: 7px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 9px;
+  }
+
+  .print-music-card {
+    background: var(--navy-soft);
+    border: 1px solid rgba(255,255,255,.16);
+    min-width: 0;
+    padding: 7px 8px 8px;
+  }
+
+  .print-music-card > div {
+    display: grid;
+    grid-template-columns: 18px 1fr;
+  }
+
+  .print-music-card > div > span {
+    color: var(--orange);
+    font-family: var(--display);
+    font-size: 8px;
+    grid-row: 1 / 3;
+  }
+
+  .print-music-card strong {
+    font-family: var(--display);
+    font-size: 11px;
+  }
+
+  .print-music-card small {
+    color: var(--mint);
+    font-size: 6px;
+    line-height: 1.25;
+  }
+
+  .print-music-card ul {
+    list-style: none;
+    margin: 6px 0 0;
+    padding: 0;
+  }
+
+  .print-music-card li {
+    border-top: 1px solid rgba(255,255,255,.12);
+    font-size: 7px;
+    line-height: 1.25;
+    padding: 4px 0 3px;
+  }
+
+  .print-music-card a {
+    color: #fff;
+    display: block;
+    text-decoration: underline;
+    text-decoration-color: var(--spotify);
+    text-underline-offset: 2px;
+  }
+
+
+  @page { size:A4 portrait; margin:10mm; }
+  .pro-workbench, .exercise-library, #pro-dialog, .block-tools, .exercise-tools, .program-heading, .adaptation-note { display:none !important; }
+  .builder-shell, .program-panel { display:block !important; width:100% !important; max-width:none !important; margin:0 !important; padding:0 !important; border:0 !important; box-shadow:none !important; }
+  main { margin:0 !important; padding:0 !important; }
+  #pro-print-summary { display:block; break-after:page; font-size:11pt; line-height:1.45; color:#0b1e32; }
+  #pro-print-summary > header { display:flex; justify-content:space-between; align-items:center; border-bottom:2mm solid #ef7417; padding:0 0 6mm; margin:0 0 10mm; }
+  #pro-print-summary > header img { width:30mm; }
+  #pro-print-summary h1 { font-family:var(--display); font-size:30pt; line-height:1.1; margin:4mm 0 10mm; overflow-wrap:anywhere; }
+  #pro-print-summary h2 { font-size:15pt; margin:8mm 0 3mm; }
+  #pro-print-summary p { white-space:pre-wrap; }
+  .print-client-row { display:grid; grid-template-columns:2fr 2fr 1fr; gap:5mm; background:#edf1f4; border-left:1.5mm solid #ef7417; padding:6mm; }
+  .print-client-row small, .print-client-row strong { display:block; }
+  .print-client-row small { font-size:8pt; margin-bottom:2mm; color:#516172; }
+  #pro-print-summary table { width:100%; border-collapse:collapse; font-size:9.5pt; }
+  #pro-print-summary th { background:#0b1e32; color:white; text-align:left; padding:3mm; }
+  #pro-print-summary td { border-bottom:.25mm solid #ced5db; padding:3mm; vertical-align:top; }
+  #pro-print-summary td:first-child { white-space:nowrap; }
+  .print-profile { margin-top:7mm; color:#526374; font-size:9pt; }
+  body.pro-no-assignment #assignment-print-summary, body.pro-no-music #print-music-sheet, body.pro-no-practical #print-practical-sheet { display:none !important; }
+  #assignment-print-summary, #print-music-sheet { break-before:page; }
+  #print-exercise-pages { display:block !important; break-before:page; }
+  .pro-print-page { height:274mm; display:flex; flex-direction:column; break-after:page; break-inside:avoid; font-size:9pt; color:#0b1e32; padding:0; box-sizing:border-box; }
+  .pro-print-page:last-child { break-after:auto; }
+  .pro-page-header { display:flex; justify-content:space-between; gap:4mm; border-bottom:1mm solid #ef7417; padding:0 0 3mm; margin-bottom:4mm; font-size:8pt; line-height:1.3; }
+  .pro-page-header > * { max-width:40%; overflow-wrap:anywhere; }
+  .pro-print-cards { display:grid; grid-template-columns:1fr; grid-template-rows:repeat(2,minmax(0,1fr)); gap:4mm; flex:1; min-height:0; }
+  .count-1 .pro-print-cards { grid-template-rows:1fr; }
+  .count-4 .pro-print-cards { grid-template-columns:1fr 1fr; grid-template-rows:repeat(2,minmax(0,1fr)); }
+  .count-6 .pro-print-cards { grid-template-columns:1fr 1fr; grid-template-rows:repeat(3,minmax(0,1fr)); }
+  .pro-print-card { border:.25mm solid #cbd2d8; border-top:1mm solid #f07819; border-radius:1mm; padding:4mm; display:flex; flex-direction:column; gap:1.6mm; min-height:0; overflow-wrap:anywhere; break-inside:avoid; }
+  .pro-print-title { display:flex; align-items:center; gap:3mm; }
+  .pro-print-title > b { font-size:20pt; line-height:1; color:#d46212; }
+  .pro-print-title small { color:#617080; font-size:8pt; }
+  .pro-print-title h3 { font-family:var(--display); font-size:16pt; line-height:1.1; margin:1mm 0; }
+  .pro-print-title p { font-size:8pt; color:#617080; margin:0; }
+  .pro-print-dose { display:flex; align-items:center; justify-content:space-between; gap:3mm; padding:2mm 3mm; background:#0b1e32; color:white; font-size:9pt; }
+  .pro-print-dose strong { font-size:7pt; letter-spacing:.03em; }
+  .pro-print-dose span { white-space:pre-wrap; }
+  .pro-print-prescription { margin:0; font-size:8pt; color:#46576a; }
+  .pro-print-visuals { display:flex; align-items:center; gap:3mm; flex:1; min-height:0; max-height:55mm; }
+  .pro-print-movement { display:block; width:58%; height:100%; min-height:0; object-fit:contain; }
+  .pro-print-movement:only-child { width:100%; }
+  .pro-print-anatomy { width:42%; min-width:0; height:100%; display:flex; flex-direction:column; }
+  .pro-print-anatomy:only-child { width:100%; }
+  .pro-print-anatomy .anatomy-visual { flex:1; min-height:0; height:35mm; margin:0; }
+  .pro-print-anatomy p { font-size:7pt; line-height:1.25; margin:1mm 0 0; text-align:center; }
+  .pro-print-instructions p, .pro-print-variations p, .pro-print-notes { font-size:8.5pt; line-height:1.3; margin:0 0 1mm; white-space:pre-wrap; }
+  .pro-print-variations { display:flex; gap:4mm; padding-top:1mm; border-top:.2mm solid #d7dde2; }
+  .pro-print-variations > p { flex:1; }
+  .pro-print-video a { display:flex; gap:2mm; align-items:center; color:#854010; font-size:8pt; text-decoration:underline; }
+  .video-qr { width:17mm; height:17mm; flex:0 0 17mm; }
+  .pro-page-footer { display:flex; justify-content:space-between; padding:3mm 0 0; font-size:7.5pt; color:#607184; line-height:1.2; min-height:7mm; }
+  .count-1 .pro-print-title h3 { font-size:24pt; }
+  .count-1 .pro-print-visuals { max-height:135mm; }
+  .count-1 .pro-print-instructions p, .count-1 .pro-print-variations p, .count-1 .pro-print-notes { font-size:12pt; line-height:1.5; }
+  .count-1 .pro-print-anatomy p { font-size:10pt; }
+  .count-4 .pro-print-card, .count-6 .pro-print-card { padding:3mm; gap:1.2mm; }
+  .count-4 .pro-print-title h3, .count-6 .pro-print-title h3 { font-size:12pt; }
+  .count-4 .pro-print-dose, .count-6 .pro-print-dose { flex-direction:column; align-items:flex-start; gap:1mm; font-size:8pt; padding:2mm; }
+  .count-4 .pro-print-visuals { max-height:36mm; }
+  .count-6 .pro-print-visuals { max-height:22mm; }
+  .count-4 .pro-print-instructions p, .count-4 .pro-print-variations p, .count-4 .pro-print-notes, .count-6 .pro-print-instructions p, .count-6 .pro-print-variations p, .count-6 .pro-print-notes { font-size:7.5pt; line-height:1.2; }
+  .count-4 .pro-print-anatomy p, .count-6 .pro-print-anatomy p { font-size:6pt; }
+  .count-4 .pro-print-variations, .count-6 .pro-print-variations { display:block; }
+  .count-6 .pro-print-title > b { font-size:15pt; }
+  .count-6 .video-qr { width:14mm; height:14mm; flex-basis:14mm; }
+  #print-exercise-pages[data-font="large"] .pro-print-instructions p, #print-exercise-pages[data-font="large"] .pro-print-variations p, #print-exercise-pages[data-font="large"] .pro-print-notes { font-size:10pt; }
+  #print-exercise-pages[data-font="large"] .count-1 .pro-print-instructions p { font-size:14pt; }
+  #print-exercise-pages[data-font="large"] .count-4 .pro-print-instructions p, #print-exercise-pages[data-font="large"] .count-6 .pro-print-instructions p, #print-exercise-pages[data-font="large"] .count-4 .pro-print-variations p, #print-exercise-pages[data-font="large"] .count-6 .pro-print-variations p { font-size:8.5pt; }
+
+.pro-page-footer { display:flex !important; }
+.pro-print-visuals:has(> *) { min-height:20mm; }
+.pro-print-page.flow-page { height:auto; min-height:274mm; display:block; break-inside:auto; }
+.flow-page .pro-print-cards { display:block; }
+.flow-page .pro-print-card { display:block; break-inside:auto; }
+.flow-page .pro-print-card > * { margin-bottom:3mm; }
+.flow-page .pro-print-visuals { height:80mm; }
+.flow-page .pro-print-title, .flow-page .pro-print-dose { break-after:avoid; }
+.flow-page .pro-print-instructions p { orphans:3; widows:3; }
+@media screen {
+  html { background:#dce2e7; }
+  body.pdf-document-preview { background:white; width:190mm; margin:0 auto; padding:10mm; box-sizing:content-box; }
+  .pdf-document-preview > #pro-print-summary { min-height:254mm; margin-bottom:10mm; }
+  .pdf-document-preview > #assignment-print-summary { margin:0 0 10mm; }
+  .pdf-document-preview .pro-print-page { margin-bottom:10mm; border-bottom:1px dashed #b9c5d0; }
+  .pdf-document-preview > #print-practical-sheet { margin-top:10mm; }
+}

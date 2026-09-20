@@ -256,7 +256,7 @@
 
   function dosageFor(pool) {
     if (pool === "warmup") return "45 sek. arbejde + 15 sek. skift";
-    if (pool === "conditioning") return "40 sek. arbejde + 20 sek. skift";
+    if (pool === "conditioning" || pool === "pulse") return "40 sek. arbejde + 20 sek. skift";
     if (pool === "core") return "30-40 sek. kontrolleret arbejde";
     if (pool === "cooldown") return "30-45 sek. pr. side eller position";
     return "10-12 kontrollerede gentagelser";
@@ -740,7 +740,7 @@
   }
 
   function copyProgram() {
-    copyText(assignmentText(), document.getElementById("copy-program"));
+    copyText(window.NextPro?.programText() || assignmentText(), document.getElementById("copy-program"));
   }
 
   function copyAssignment() {
@@ -774,6 +774,7 @@
   }
 
   function requestPrint(event) {
+    if (window.NextPro?.printProgram) return window.NextPro.printProgram(event);
     const button = event?.currentTarget;
     const originalLabel = button?.textContent || "";
     if (button) {
@@ -842,6 +843,7 @@
   }
 
   function restoreAfterPrint() {
+    if (!document.body.classList.contains("printing-full-program")) return;
     const details = Array.from(document.querySelectorAll(".exercise-details"));
     details.forEach((item, index) => item.hidden = printDetailState[index] !== false);
     document.body.classList.remove("printing-full-program");

@@ -1,14 +1,15 @@
 <!doctype html>
 <html lang="da">
 <head>
-  <meta charset="utf-8">
   <base href="../">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Sammensæt et målrettet træningsprogram, løs Small Group Training-opgaver og aflever en samlet PDF med faglige begrundelser, minutplan, øvelsesvejledning og musikforslag.">
   <title>NEXT Træningsplan</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/pro.css">
+  <link rel="stylesheet" href="css/print.css" media="print">
   <script src="js/qr.js" defer></script>
   <script src="js/app-preview.js" defer></script>
   <script src="js/pro.js" defer></script>
@@ -105,7 +106,7 @@
         <div class="timeline" id="program-timeline" aria-live="polite"></div>
         <div class="print-exercise-pages" id="print-exercise-pages" aria-hidden="true"></div>
         <div class="program-actions">
-          <button type="button" class="secondary-button" id="copy-program">Kopiér opgave</button>
+          <button type="button" class="secondary-button" id="copy-program">Kopiér program</button>
           <button type="button" class="secondary-button" id="print-program">Print opgave / PDF</button>
           <button type="button" class="save-button" id="save-program">Gem opgave</button>
         </div>

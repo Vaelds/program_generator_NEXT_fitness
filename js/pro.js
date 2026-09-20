@@ -12,6 +12,7 @@
   const pdfDefaults = { perPage: 2, fontSize: "normal", images: true, anatomy: true, cues: true, variations: true, videos: true, qr: true, music: true, assignment: true, practical: true };
   let meta = { ...defaults }, pdf = { ...pdfDefaults }, custom = [], favorites = [], libraryOverrides = {}, saved = [], undo = [], redo = [];
   let saveTimer, searchTimer, replaceTarget = null, activeSnapshotId = null, booting = true;
+  let layoutPerPage = null, printing = false;
   const qrCache = new Map();
   const builtins = [];
   Object.entries(A.exercisePools).forEach(([category, exercises]) => exercises.forEach(exercise => {
@@ -53,7 +54,7 @@
     $("program-title").textContent = meta.title || S.sessionType;
   }
   function syncMeta() { document.querySelectorAll("[data-meta]").forEach(el => el.value = meta[el.dataset.meta] || ""); }
-  function syncPdf() { document.querySelectorAll("[data-pdf]").forEach(el => { if (el.type === "checkbox") el.checked = !!pdf[el.dataset.pdf]; else el.value = pdf[el.dataset.pdf]; }); }
+  function syncPdf() { document.querySelectorAll("[data-pdf]").forEach(el => { if (el.type === "checkbox") el.checked = !!pdf[el.dataset.pdf]; else el.value = pdf[el.dataset.pdf]; }); $("pdf-preset").value = pdf.assignment || pdf.music || pdf.practical ? "next" : "client"; }
   function syncTargets() {
     const field = $("library-target"), selected = field.value;
     field.innerHTML = S.program.map((b, i) => `<option value="${i}">${h(b.title)}</option>`).join("");
@@ -126,8 +127,9 @@
     } catch (_) { return ""; }
   }
   function renderPrint() {
+    if (printing && document.body.classList.contains("printing-full-program")) return;
     const entries = S.program.flatMap((b, bi) => b.exercises.map(ex => ({ ex, b, bi })));
-    const size = Number(pdf.perPage), pages = [], compact = size >= 4;
+    const size = layoutPerPage || Number(pdf.perPage), pages = [];
     for (let i = 0; i < entries.length; i += size) {
       const chunk = entries.slice(i, i + size);
       pages.push(`<section class="pro-print-page count-${size}"><header class="pro-page-header"><span>${h(meta.organization)}</span><strong>${h(meta.title)}</strong><span>${h(meta.client)}</span></header><div class="pro-print-cards">${chunk.map(({ ex, b }, j) => {
@@ -138,6 +140,73 @@
     $("print-exercise-pages").innerHTML = pages.join("");
     $("print-exercise-pages").dataset.font = pdf.fontSize;
   }
+  function programText() {
+    let minute = 0;
+    return [meta.title, `${meta.organization} · ${meta.date}`, meta.client && `Klient / hold: ${meta.client}`, meta.trainer && `Instruktør: ${meta.trainer}`, `${total()} minutter · ${S.sessionType}`, meta.goal && `Mål: ${meta.goal}`, meta.notes && `Fokus og hensyn: ${meta.notes}`, ...S.program.map(b => {
+      const start = minute; minute += b.duration;
+      return `\n${start}–${minute} min · ${b.title}\n${b.protocol}\n` + b.exercises.map((ex, i) => [ `${i + 1}. ${ex.name}`, `Gentagelser / arbejdstid: ${ex.dosage || A.dosageFor(b.pool)}`, prescription(ex), ex.guide?.start && `Start: ${ex.guide.start}`, ex.guide?.finish && `Bevægelse: ${ex.guide.finish}`, ex.cue && `Fokus: ${ex.cue}`, ex.regression && `Lettere: ${ex.regression}`, ex.progression && `Sværere: ${ex.progression}`, ex.notes, videoURL(ex) ].filter(Boolean).join("\n")).join("\n\n");
+    })].filter(Boolean).join("\n");
+  }
+  function printDocumentHTML() {
+    const ids = ["pro-print-summary", ...(pdf.assignment ? ["assignment-print-summary"] : []), ...(pdf.music ? ["print-music-sheet"] : []), "print-exercise-pages", ...(pdf.practical ? ["print-practical-sheet"] : [])];
+    const content = ids.map(id => { const el = $(id).cloneNode(true); el.removeAttribute("aria-hidden"); return el.outerHTML; }).join("");
+    return `<!doctype html><html lang="da"><head><meta charset="utf-8"><base href="${h(new URL(".", document.baseURI).href)}"><title>${h(meta.title)}</title><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/pro.css"><link rel="stylesheet" href="css/print.css"></head><body class="pdf-document-preview">${content}</body></html>`;
+  }
+  async function readyFrame(frame) {
+    await frame.contentDocument.fonts.ready;
+    await Promise.all(Array.from(frame.contentDocument.images).map(img => img.decode ? img.decode().catch(() => {}) : Promise.resolve()));
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  }
+  async function prepareLayout(frame) {
+    layoutPerPage = Number(pdf.perPage);
+    A.preparePrint();
+    const html = printDocumentHTML();
+    A.restoreAfterPrint();
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(Error("Forhåndsvisningen kunne ikke indlæses. Prøv igen.")), 15000);
+      frame.onload = () => { clearTimeout(timer); resolve(); };
+      frame.srcdoc = html;
+    });
+    await readyFrame(frame);
+    const sizes = [6, 4, 2, 1].filter(n => n <= Number(pdf.perPage));
+    let longPages = 0;
+    for (const size of sizes) {
+      layoutPerPage = size; renderPrint();
+      const target = frame.contentDocument.getElementById("print-exercise-pages");
+      target.innerHTML = $("print-exercise-pages").innerHTML;
+      await readyFrame(frame);
+      const overflow = Array.from(target.querySelectorAll(".pro-print-card")).filter(card => card.scrollHeight > card.clientHeight + 2);
+      if (!overflow.length) break;
+      if (size === 1) {
+        overflow.forEach(card => card.closest(".pro-print-page").classList.add("flow-page"));
+        longPages = overflow.length;
+        $("print-exercise-pages").innerHTML = target.innerHTML;
+      }
+    }
+    return `${layoutPerPage === Number(pdf.perPage) ? `Op til ${layoutPerPage} øvelser pr. side.` : `Layoutet er tilpasset til ${layoutPerPage} øvelser pr. side, så indholdet kan være der.`}${longPages ? " Lange øvelsestekster fortsætter på flere sider." : ""} Den endelige sideskiftning vises i browserens udskriftsvindue.`;
+  }
+  async function previewPdf() {
+    dialog("Forhåndsvis PDF", `<p class="pdf-preview-note" id="pdf-preview-note" role="status">Forbereder forhåndsvisningen …</p><div class="pdf-preview-scroll"><iframe id="pdf-preview-frame" title="Forhåndsvisning af træningsprogram" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe></div>`, "Print / gem PDF", () => { printProgram(); return false; }, "pdf-preview-dialog");
+    try { $("pdf-preview-note").textContent = await prepareLayout($("pdf-preview-frame")); }
+    catch (error) { $("pdf-preview-note").textContent = error.message; }
+  }
+  async function printProgram(event) {
+    if (printing) return;
+    printing = true;
+    const button = event?.currentTarget, label = button?.textContent;
+    if (button) { button.disabled = true; button.textContent = "Forbereder PDF …"; }
+    const frame = document.createElement("iframe"); frame.className = "pdf-measure-frame"; frame.title = "Forbereder dokument"; frame.setAttribute("aria-hidden", "true"); frame.setAttribute("sandbox", "allow-same-origin"); document.body.appendChild(frame);
+    try {
+      const message = await prepareLayout(frame);
+      // Keep the measured pages, including flow pages for unusually long text.
+      const measured = $("print-exercise-pages").innerHTML;
+      A.preparePrint(); $("print-exercise-pages").innerHTML = measured;
+      await document.fonts.ready;
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      window.print(); notify(message);
+    } catch (error) { notify(error.message || "PDF'en kunne ikke klargøres.", true); }
+    finally { frame.remove(); A.restoreAfterPrint(); printing = false; if (button) { button.disabled = false; button.textContent = label; } }
+  }
   function preparePrint() {
     ["music", "assignment", "practical"].forEach(key => document.body.classList.toggle("pro-no-" + key, !pdf[key]));
     let minute = 0;
@@ -147,7 +216,7 @@
     const search = $("library-search").value.toLocaleLowerCase("da"), category = $("library-category").value, equipment = $("library-equipment").value, muscle = $("library-muscle").value;
     const items = catalog().filter(ex => (!category || (ex.categories || [ex.category]).includes(category)) && (!equipment || ex.equipment === equipment) && (!muscle || ex.guide?.muscles?.includes(muscle)) && (!$("library-low-impact").checked || ex.lowImpact) && (!$("library-favorites").checked || favorites.includes(ex.id || ex.name)) && `${ex.name} ${ex.focus} ${ex.equipment} ${(ex.guide?.muscles || []).map(k => A.muscleGroups[k]?.danish + " " + A.muscleGroups[k]?.latin).join(" ")}`.toLocaleLowerCase("da").includes(search));
     $("library-count").textContent = `${items.length} af ${catalog().length} øvelser`;
-    $("library-grid").innerHTML = items.length ? items.map(ex => `<article class="library-card"><button type="button" class="favorite-button" data-pro="favorite" data-id="${h(ex.id || ex.name)}" aria-label="Favorit: ${h(ex.name)}" aria-pressed="${favorites.includes(ex.id || ex.name)}">${favorites.includes(ex.id || ex.name) ? "★" : "☆"}</button><button type="button" class="library-preview" data-pro="preview" data-id="${h(ex.id || ex.name)}">${imageURL(ex) ? `<img src="${h(imageURL(ex))}" alt="" loading="lazy">` : `<span class="custom-exercise-placeholder">Egen øvelse</span>`}</button><div class="library-card-content"><p class="pro-kicker">${h((ex.categories || [ex.category]).map(k => categories[k]).filter(Boolean).join(" · "))}</p><h3>${h(ex.name)}</h3><p>${h(ex.equipment)}${ex.lowImpact ? " · uden hop" : ""}</p><div><button class="secondary-button" type="button" data-pro="preview" data-id="${h(ex.id || ex.name)}">Se øvelse</button><button class="save-button" type="button" data-pro="add-exercise" data-id="${h(ex.id || ex.name)}">${replaceTarget ? "Vælg" : "+ Tilføj"}</button></div></div></article>`).join("") : `<div class="library-empty"><h3>Ingen øvelser matcher</h3><p>Prøv et andet søgeord eller fjern et filter.</p><button class="secondary-button" type="button" data-pro="reset-filters">Nulstil filtre</button></div>`;
+    $("library-grid").innerHTML = items.length ? items.map(ex => `<article class="library-card"><button type="button" class="favorite-button" data-pro="favorite" data-id="${h(ex.id || ex.name)}" aria-label="Favorit: ${h(ex.name)}" aria-pressed="${favorites.includes(ex.id || ex.name)}">${favorites.includes(ex.id || ex.name) ? "★" : "☆"}</button><button type="button" class="library-preview" aria-label="Se ${h(ex.name)}" data-pro="preview" data-id="${h(ex.id || ex.name)}">${imageURL(ex) ? `<img src="${h(imageURL(ex))}" alt="" loading="lazy">` : `<span class="custom-exercise-placeholder">Egen øvelse</span>`}</button><div class="library-card-content"><p class="pro-kicker">${h((ex.categories || [ex.category]).map(k => categories[k]).filter(Boolean).join(" · "))}</p><h3>${h(ex.name)}</h3><p>${h(ex.equipment)}${ex.lowImpact ? " · uden hop" : ""}</p><div><button class="secondary-button" type="button" data-pro="preview" data-id="${h(ex.id || ex.name)}">Se øvelse</button><button class="save-button" type="button" data-pro="add-exercise" data-id="${h(ex.id || ex.name)}">${replaceTarget ? "Vælg" : "+ Tilføj"}</button></div></div></article>`).join("") : `<div class="library-empty"><h3>Ingen øvelser matcher</h3><p>Prøv et andet søgeord eller fjern et filter.</p><button class="secondary-button" type="button" data-pro="reset-filters">Nulstil filtre</button></div>`;
   }
   function openLibrary(b, e = null) {
     replaceTarget = e === null ? null : { b, e }; syncTargets(); $("library-target").value = b;
@@ -291,23 +360,24 @@
     document.querySelectorAll("[data-meta]").forEach(el => el.addEventListener("input", () => { meta[el.dataset.meta] = el.value; updateSummary(); A.markUnsaved(); }));
     document.querySelectorAll("[data-pdf]").forEach(el => el.addEventListener("change", () => { pdf[el.dataset.pdf] = el.type === "checkbox" ? el.checked : el.dataset.pdf === "perPage" ? Number(el.value) : el.value; renderPrint(); A.markUnsaved(); }));
     $("pdf-preset").onchange = event => { if (event.target.value === "client") Object.assign(pdf, { assignment: false, music: false, practical: false }); if (event.target.value === "next") Object.assign(pdf, { assignment: true, music: true, practical: true }); syncPdf(); renderPrint(); A.markUnsaved(); };
-    $("pro-print-button").onclick = event => A.requestPrint(event);
+    $("pro-print-button").onclick = printProgram;
+    $("pro-preview-button").onclick = previewPdf;
     $("library-search").oninput = () => { clearTimeout(searchTimer); searchTimer = setTimeout(renderLibrary, 120); };
     ["library-category", "library-equipment", "library-muscle", "library-low-impact", "library-favorites"].forEach(id => $(id).onchange = renderLibrary);
     document.addEventListener("next:change", () => {
-      if (booting) return; updateSummary(); syncTargets(); clearTimeout(saveTimer);
+      if (booting) return; layoutPerPage = null; updateSummary(); syncTargets(); clearTimeout(saveTimer);
       saveTimer = setTimeout(() => { if (write("next-pro-draft", snapshot())) $("autosave-status").textContent = "Kladde gemt på denne enhed"; }, 600);
     });
   }
   function initialize() {
     const library = read("next-pro-library", {}); custom = Array.isArray(library.custom) ? library.custom : []; favorites = Array.isArray(library.favorites) ? library.favorites : []; libraryOverrides = library.libraryOverrides || {}; saved = read("next-pro-saved", []); if (!Array.isArray(saved)) saved = [];
-    mount(); bindActions(); window.NextPro = { blockTools, exerciseHTML, visualHTML, renderPrint, preparePrint, snapshot, validateSnapshot };
+    mount(); bindActions(); window.NextPro = { blockTools, exerciseHTML, visualHTML, renderPrint, preparePrint, snapshot, validateSnapshot, printProgram, programText };
     const draft = read("next-pro-draft", null);
     if (draft) { try { const clean = validateSnapshot(draft); Object.assign(S, clean.settings); meta = clean.meta; pdf = clean.pdf; } catch (_) { notify("Den tidligere kladde kunne ikke indlæses. Dit oprindelige program er bevaret.", true); } }
     booting = false; refresh(); renderLibrary();
   }
   function mount() {
-    $("program").insertAdjacentHTML("afterbegin", `<div class="pro-workbench"><div class="workbench-top"><span class="pro-kicker">PROGRAMVÆRKSTED</span><strong id="workbench-count"></strong></div><div class="pro-toolbar"><button class="save-button" id="open-library" type="button">+ Tilføj øvelse</button><button class="secondary-button" id="new-block" type="button">Ny blok</button><button class="icon-button" id="undo-program" type="button" aria-label="Fortryd" title="Fortryd">↶</button><button class="icon-button" id="redo-program" type="button" aria-label="Gendan" title="Gendan">↷</button></div><p class="form-help" id="duration-check"></p><button class="text-button" id="fit-time" type="button" hidden></button><details class="pro-settings"><summary>Programoplysninger <span>Klient, instruktør og mål</span></summary><div class="pro-form-grid">${Object.entries({ title: "Programtitel", client: "Klient / hold", trainer: "Instruktør", organization: "Organisation", date: "Dato" }).map(([k, label]) => `<label><span>${label}</span><input type="${k === "date" ? "date" : "text"}" data-meta="${k}" maxlength="180"></label>`).join("")}${["goal", "notes"].map(k => `<label class="wide"><span>${k === "goal" ? "Mål med forløbet" : "Fokus og hensyn"}</span><textarea rows="2" data-meta="${k}" maxlength="3000"></textarea></label>`).join("")}</div></details><details class="pro-settings" id="pdf-settings"><summary>PDF og udskrift <span>Layout og indhold</span></summary><div class="pro-form-grid"><label><span>Dokumenttype</span><select id="pdf-preset"><option value="next">NEXT-opgave med besvarelse</option><option value="client">Klientprogram</option></select></label><label><span>Øvelser pr. A4-side</span><select data-pdf="perPage"><option value="1">1 – stort format</option><option value="2">2 – detaljeret</option><option value="4">4 – kompakt</option><option value="6">6 – oversigt</option></select></label><label><span>Skriftstørrelse</span><select data-pdf="fontSize"><option value="normal">Normal</option><option value="large">Større</option></select></label></div><div class="pdf-checkboxes">${Object.entries({ images: "Øvelsesbilleder", anatomy: "Anatomifigurer", cues: "Udførelse og cues", variations: "Lettere / sværere", videos: "Videolinks", qr: "QR-koder til video", music: "Spotify og musik", assignment: "Opgavebesvarelse", practical: "Praktisk afprøvning til sidst" }).map(([k, label]) => `<label class="pro-check"><input type="checkbox" data-pdf="${k}">${label}</label>`).join("")}</div><p class="form-help">Vælg »Gem som PDF« i browserens udskriftsvindue for at bevare links. QR-koder vises for øvelser med et videolink.</p><button class="save-button" id="pro-print-button" type="button">Print / gem PDF</button></details><details class="pro-settings"><summary>Mine programmer <span>Gem, genbrug og flyt</span></summary><div class="pro-toolbar"><button class="save-button" type="button" id="save-named">Gem program / skabelon</button><button class="secondary-button" type="button" id="download-program">Download programfil</button><button class="secondary-button" type="button" id="import-program">Åbn programfil</button><input id="program-file" type="file" accept=".json,application/json" hidden></div><p class="form-help">Programmer og klientoplysninger gemmes i denne browser. En programfil kan åbnes på en anden enhed. Brug initialer, hvis du deler en fil.</p><div id="saved-programs"></div></details><div class="autosave-line"><span id="autosave-status">Automatisk kladde på denne enhed</span></div><p id="pro-status" role="status" aria-live="polite"></p></div><section id="pro-print-summary"></section>`);
+    $("program").insertAdjacentHTML("afterbegin", `<div class="pro-workbench"><div class="workbench-top"><span class="pro-kicker">PROGRAMVÆRKSTED</span><strong id="workbench-count"></strong></div><div class="pro-toolbar"><button class="save-button" id="open-library" type="button">+ Tilføj øvelse</button><button class="secondary-button" id="new-block" type="button">Ny blok</button><button class="icon-button" id="undo-program" type="button" aria-label="Fortryd" title="Fortryd">↶</button><button class="icon-button" id="redo-program" type="button" aria-label="Gendan" title="Gendan">↷</button></div><p class="form-help" id="duration-check"></p><button class="text-button" id="fit-time" type="button" hidden></button><details class="pro-settings"><summary>Programoplysninger <span>Klient, instruktør og mål</span></summary><div class="pro-form-grid">${Object.entries({ title: "Programtitel", client: "Klient / hold", trainer: "Instruktør", organization: "Organisation", date: "Dato" }).map(([k, label]) => `<label><span>${label}</span><input type="${k === "date" ? "date" : "text"}" data-meta="${k}" maxlength="180"></label>`).join("")}${["goal", "notes"].map(k => `<label class="wide"><span>${k === "goal" ? "Mål med forløbet" : "Fokus og hensyn"}</span><textarea rows="2" data-meta="${k}" maxlength="3000"></textarea></label>`).join("")}</div></details><details class="pro-settings" id="pdf-settings"><summary>PDF og udskrift <span>Layout og indhold</span></summary><div class="pro-form-grid"><label><span>Dokumenttype</span><select id="pdf-preset"><option value="next">NEXT-opgave med besvarelse</option><option value="client">Klientprogram</option></select></label><label><span>Maks. øvelser pr. A4-side</span><select data-pdf="perPage"><option value="1">1 – stort format</option><option value="2">2 – detaljeret</option><option value="4">4 – kompakt</option><option value="6">6 – oversigt</option></select></label><label><span>Skriftstørrelse</span><select data-pdf="fontSize"><option value="normal">Normal</option><option value="large">Større</option></select></label></div><div class="pdf-checkboxes">${Object.entries({ images: "Øvelsesbilleder", anatomy: "Anatomifigurer", cues: "Udførelse og cues", variations: "Lettere / sværere", videos: "Videolinks", qr: "QR-koder til video", music: "Spotify og musik", assignment: "Opgavebesvarelse", practical: "Praktisk afprøvning til sidst" }).map(([k, label]) => `<label class="pro-check"><input type="checkbox" data-pdf="${k}">${label}</label>`).join("")}</div><p class="form-help">Vælg »Gem som PDF« i browserens udskriftsvindue for at bevare links. QR-koder vises for øvelser med et videolink. Om nødvendigt reduceres antallet af øvelser pr. side for at give plads til teksten.</p><button class="secondary-button" id="pro-preview-button" type="button">Forhåndsvis PDF</button><button class="save-button" id="pro-print-button" type="button">Print / gem PDF</button></details><details class="pro-settings"><summary>Mine programmer <span>Gem, genbrug og flyt</span></summary><div class="pro-toolbar"><button class="save-button" type="button" id="save-named">Gem program / skabelon</button><button class="secondary-button" type="button" id="download-program">Download programfil</button><button class="secondary-button" type="button" id="import-program">Åbn programfil</button><input id="program-file" type="file" accept=".json,application/json" hidden></div><p class="form-help">Programmer og klientoplysninger gemmes i denne browser. En programfil kan åbnes på en anden enhed. Brug initialer, hvis du deler en fil.</p><div id="saved-programs"></div></details><div class="autosave-line"><span id="autosave-status">Automatisk kladde på denne enhed</span></div><p id="pro-status" role="status" aria-live="polite"></p></div><section id="pro-print-summary"></section>`);
     $("assignment").insertAdjacentHTML("beforebegin", `<section class="exercise-library" id="exercise-library" aria-labelledby="library-title"><header class="library-header"><div><span class="pro-kicker">DIT ØVELSESBIBLIOTEK</span><h2 id="library-title">Find den rigtige øvelse.</h2><p>38 illustrerede øvelser – og plads til dine egne.</p></div><button class="save-button" id="new-exercise" type="button">+ Opret egen øvelse</button></header><div class="library-controls"><label class="library-search-label"><span>Søg i øvelser og muskler</span><input type="search" id="library-search" placeholder="Fx balder, squat eller skulder…"></label><label><span>Kategori</span><select id="library-category"><option value="">Alle kategorier</option>${Object.entries(categories).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select></label><label><span>Udstyr</span><select id="library-equipment"><option value="">Alt udstyr</option>${["Kropsvægt", "Måtte", "Håndvægte", "Elastik", "Andet"].map(k => `<option>${k}</option>`).join("")}</select></label><label><span>Muskelgruppe</span><select id="library-muscle"><option value="">Alle muskler</option>${Object.entries(A.muscleGroups).map(([k, v]) => `<option value="${k}">${h(v.danish)}</option>`).join("")}</select></label></div><div class="library-options"><div><label class="pro-check"><input type="checkbox" id="library-low-impact">Uden hop</label><label class="pro-check"><input type="checkbox" id="library-favorites">Kun favoritter</label></div><label class="library-target"><span>Tilføj til</span><select id="library-target"></select></label></div><div id="library-mode" class="library-mode" hidden><span id="library-mode-text"></span><button type="button" id="cancel-replace">Annuller udskiftning</button></div><p id="library-count" class="form-help" role="status"></p><div class="library-grid" id="library-grid"></div></section>`);
     document.body.insertAdjacentHTML("beforeend", `<dialog id="pro-dialog" aria-labelledby="dialog-title"></dialog>`);
   }
