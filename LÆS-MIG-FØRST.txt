@@ -1,97 +1,70 @@
-NEXT TRÆNINGSPLAN – SÅDAN ÅBNER DU SIDEN
-========================================
+NEXT TRÆNINGSPLAN – PROGRAMVÆRKSTED, VERSION 3
+============================================
 
-1. Pak hele ZIP-filen ud.
-2. Åbn den udpakkede mappe.
-3. Dobbeltklik på index.html.
+ÅBN SIDEN
+Pak hele ZIP-filen ud. Dobbeltklik på index.html.
+I Visual Studio Code: File > Open Folder, og åbn den udpakkede mappe.
+Du kan bruge Live Server / Live Preview, men det er ikke et krav.
+Der kræves hverken npm, Node.js eller en terminal.
 
-Siden åbner direkte i din normale browser. Du skal IKKE installere Node.js,
-køre npm eller bruge en terminal.
+BYG PROGRAMMET
+1. Vælg holdprofil, udstyr og 20–180 minutter. Generér et forslag.
+2. Brug Tilføj øvelse til at vælge fra de 38 eksisterende øvelser eller dine egne.
+3. Søg på navn eller muskel. Filtrér efter kategori, udstyr, muskel og favoritter.
+4. Brug Redigér på en øvelse til dosering, sæt, pause, belastning, tempo, RPE,
+   startposition, udførelse, lettere/sværere variation og personlige noter.
+5. Flyt øvelser med pilene eller vælg en anden blok i redigeringsvinduet.
+6. Du kan tilføje og redigere blokke. Blokændringer opdaterer den samlede tid.
+   Hvis du ændrer tidsmålet i venstre panel, kan Fordel tiden til … tilpasse
+   blokkene uden at udskifte dine øvelser. Tiden omfatter instruktion og skift;
+   kontrollér selv, at den valgte dosering og pauser passer inden for blokken.
+7. Fortryd og Gendan omfatter ændringer via programværkstedets knapper.
+   Direkte indtastning i tekstfelter gemmes i kladden, men har ikke separat historik.
 
-VISUAL STUDIO CODE
-------------------
+PROGRAMOPLYSNINGER OG GEMNING
+Indtast programtitel, klient/hold, instruktør, organisation, dato, mål og hensyn.
+Kladden gemmes automatisk i denne browser. Mine programmer kan gemme op til
+30 programmer/skabeloner. Nye gemninger opretter en ny version i listen.
+En skabelon tømmer klientfelt, hensyn, deltagerprofiler og evaluerings-/øvelsesnoter.
+Gennemgå altid øvrig tekst, før en skabelon deles eller genbruges.
+Download programfil laver en .next.json-fil, som kan åbnes igen via Åbn programfil.
+Filen indeholder program, besvarelse, PDF-valg, egne øvelser og lokale videolinks.
+Gem og download af filer sender ikke klientdata til en server.
+Browserdata er knyttet til enheden og adressen. Sletning af browserdata eller
+flytning fra lokal fil til GitHub flytter ikke automatisk programmerne.
+Tag derfor programfiler som sikkerhedskopi. Store egne billeder kan opbruge
+browserens lagerplads; siden viser en fejl, hvis en gemning ikke lykkes.
 
-1. Vælg File > Open Folder og åbn denne mappe.
-2. Højreklik på index.html.
-3. Vælg Open with Live Server eller Show Preview.
+EGNE ØVELSER OG VIDEO
+Opret egne øvelser med PNG, JPG eller WebP på højst 2 MB pr. billede.
+De eksisterende 38 illustrationer og anatomimarkeringer er bevaret.
+Tilføj et direkte http-/https-link til en instruktionsvideo. Siden indeholder
+ikke et licenseret videobibliotek. QR-koder genereres lokalt for de valgte links.
+Et klik på et videolink eller Spotify åbner den eksterne tjeneste.
 
-Du kan også blot dobbeltklikke på index.html i Windows Stifinder.
+PDF OG UDSKRIFT
+Vælg NEXT-opgave eller Klientprogram. Du kan derefter tilpasse hvert indholdsvalg.
+Vælg højst 1, 2, 4 eller 6 øvelser pr. A4-side. 1–2 anbefales til detaljeret vejledning;
+4–6 er kompakte layouts. Forhåndsvis PDF viser resultatet før udskrift.
+Antallet pr. side reduceres automatisk, hvis teksten fylder for meget.
+Ekstra lange øvelsestekster fortsætter på flere sider.
+Billeder, anatomi, instruktioner, variationer, videoer, QR, musik, opgavebesvarelse
+og praktisk afprøvning kan vælges til og fra. Praktisk afprøvning står altid sidst.
+Gentagelser/arbejdstid står kun i den markerede doseringsrække på øvelsesarket.
+Brug Print / gem PDF og vælg browserens destination Gem som PDF.
+Vælg A4, portræt, 100 % og slå browserens egne sidehoveder/-fødder fra.
+Aktivér baggrundsgrafik for NEXT-farver. Microsoft Print to PDF kan miste links.
+PDF-læseren bestemmer, om et eksternt link åbner en ny fane. Ctrl+klik eller
+Acrobat Reader kan bruges, hvis browserens PDF-læser genbruger fanen.
 
-INDHOLD
--------
-
-- Valgfri træningsvarighed fra 20 til 180 minutter i intervaller på ét minut.
-- Alle programblokke genberegnes, så den samlede tid altid svarer præcis til
-  det valgte antal minutter.
-- Opvarmning på 5–10 minutter.
-- Tilpasning efter alder, erfaring, intensitet, holdtype og udstyr.
-- Gem program lokalt på enheden.
-- Åbn hver øvelse med plus-tegnet for at se professionelle start-/slutillustrationer.
-- Alle 38 øvelsesillustrationer er tilpasset med ensartet sikkerhedsmargen,
-  så hele kroppen og begge bevægelsespositioner vises uden beskæring. Den
-  oprindelige billedbaggrund er erstattet af samme råhvide farve som hele
-  billedrammen, så der ikke ses en indre rektangulær kasse.
-- Detaljeret anatomisk illustration af aktive muskelgrupper med navne på latin og dansk.
-- Muskelangivelserne er gennemgået for alle 38 øvelser. Glute bridge viser
-  gluteus maximus som primær, ischiocrurales som medvirkende og transversus
-  abdominis som stabiliserende uden fejlagtig markering af forlåret.
-- Anatomifigurerne er centreret med en rolig, ensartet margen til billedrammen.
-- Muskelmarkeringerne bruger en gennemsigtig rød toning, så muskelfibre,
-  konturer og skygger fortsat er synlige gennem farven.
-- Step-up, chest press, incline push-up og Romanian deadlift har korrigerede
-  start-/slutpositioner og ensartet placering af udstyr.
-- Reverse lunge, bear hold, fast feet, mountain climber, low-impact burpee,
-  side plank og walkout er desuden korrigeret for kameravinkel og tydelighed.
-  Hele serien på 38 billeder er gennemgået for tilsvarende perspektiv-,
-  proportions- og kontinuitetsfejl.
-- Spotify-forslag med tydelig 4/4-takt og BPM-zoner til timens tre faser.
-- Direkte Spotify-søgninger åbnes i en ny browserfane.
-- Et komplet opgaveværksted til NEXT-opgaven "Small Group Training".
-- Opgaveværkstedet er opdelt i fire rolige trin, og kun ét trin er åbent ad
-  gangen, så siden forbliver overskuelig.
-- Knap til at anvende opgavekravet med 2-3 deltagere og præcis 55 minutter.
-- Udfyldelige deltagerprofiler, faglige begrundelser, organisering,
-  arbejds-/pausetider, intensitetsstyring, instruktion og praktisk evaluering.
-- Automatisk minut-for-minut-plan, der følger det genererede program.
-- Redigerbar angivelse af gentagelser eller arbejdstid for hver øvelse.
-- Besvarelsestjek, som viser hvilke opgavepunkter der stadig mangler.
-- Lokal lagring og kopiering omfatter både program og opgavebesvarelse.
-- Ved Print / gem PDF åbnes alle øvelser automatisk, så illustrationer og
-  muskelgrupper kommer med i PDF-filen. Den valgte musikprofil, BPM-zoner og
-  klikbare Spotify-forslag til alle tre faser vises direkte på PDF'ens første
-  del før øvelsesprogrammet. Opgavebesvarelsen, deltagerprofilerne,
-  minut-for-minut-planen og en øvelsesoversigt med dosering, progression og
-  regression medtages også. Hvert understreget musikforslag er ét enkelt,
-  aktivt link til en Spotify-søgning efter præcis det viste forslag. Linkene
-  er indstillet til at åbne i en ny fane.
-- PDF-printet placerer øvelserne i faste par med præcis to komplette øvelser
-  pr. A4-side. Kortbredde, farver, instruktioner, illustrationer og
-  muskeloversigter bevares.
-- "Praktisk afprøvning" placeres som PDF'ens sidste, separate A4-side med
-  skrive-linjer og god plads til kommentarer.
-
-VIGTIGT OM AKTIVE LINKS I PDF
------------------------------
-
-Vælg browserens destination "Gem som PDF" i udskriftsvinduet. Undgå
-"Microsoft Print to PDF", da denne Windows-printer kan fjerne hyperlinks fra
-PDF-filen. Åbn den gemte PDF i Microsoft Edge, Google Chrome eller Adobe
-Acrobat Reader, og klik på det understregede musikforslag.
-
-Knappen "Print opgave / PDF" forbereder hele dokumentet i A4-portrætformat og
-giver filen et navn som NEXT-traeningsplan-ÅÅÅÅ-MM-DD.pdf. Browseren åbner
-derefter udskriftsvinduet, hvor destinationen skal være "Gem som PDF".
-
-En PDF-læser kan vælge at tilsidesætte hjemmesidens indstilling om en ny fane.
-Hvis linket erstatter PDF-fanen i Chrome eller Edge, åbnes det sikkert i en ny
-fane med Ctrl + klik eller ved at klikke med musens midterste knap. Åbnes PDF'en
-i Adobe Acrobat Reader, forbliver PDF'en åben, mens Spotify åbnes i browseren.
+HVAD DER ER LOKALT
+Dette er en selvstændig HTML/CSS/JavaScript-løsning til GitHub Pages.
+Generatoren bruger regler og øvelsesbiblioteket; den er ikke en AI-model.
+Der er ingen fælles klientdatabase, login, cloud-synkronisering, beskeder til
+klienter, automatisk træningsregistrering eller behandling af betalinger.
+Sådanne funktioner kræver en separat serverløsning og adgangsstyring.
+ExorLives øvelser, videoer, logo og software er ikke kopieret eller integreret.
 
 GITHUB PAGES
-------------
-
-Upload HELE indholdet af denne mappe til roden af dit GitHub-repository.
-Filen index.html skal ligge i repositoryets øverste niveau sammen med mapperne
-css, js og assets.
-
-Projektet kræver ingen installation og indeholder ingen skjulte afhængigheder.
+Upload hele indholdet, så index.html ligger i roden sammen med css, js og assets.
+QR-biblioteket ligger lokalt i js/qr.js; licensen findes i THIRD-PARTY-LICENSES.txt.
