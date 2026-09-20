@@ -21,14 +21,14 @@
         { name: "", profile: "", needs: "" }
       ],
       purpose: "At forbedre deltagernes helkropsstyrke og kondition gennem en overskuelig træning, hvor alle kan arbejde på deres eget niveau.",
-      formRationale: "Stationstræning er valgt, fordi tre deltagere kan være aktive samtidig, mens instruktøren kan observere, coache og tilpasse belastningen individuelt.",
+      formRationale: "Træningen kombinerer fælles rytme, skiftende træner-/makkerroller og spejløvelser. Samarbejdet skaber konkret feedback, fælles opmærksomhed og fælles intensitetsstyring.",
       warmupRationale: "Intensiteten øges gradvist fra rolige, store bevægelser til øvelser, der ligner hoveddelens bevægelsesmønstre. Tempo og bevægeudslag øges trinvis.",
       warmupConnection: "Opvarmningen forbereder hofter, knæ, skuldre og core til squat-, pres-, træk- og stabilitetsøvelserne i hoveddelen.",
       cooldownRationale: "Tempoet sænkes gradvist, hvorefter deltagerne arbejder med rolig vejrtrækning og bevægelighed. Timen afsluttes med kort fælles feedback.",
-      smallGroupRationale: "Deltagerne arbejder som en gruppe med fælles tidsstyring, makkerfeedback og rotation mellem stationer. Instruktøren følger hver deltager og giver individuelle regressioner og progressioner.",
-      organization: "Tre stationer placeres i en trekant med god afstand. Udstyret klargøres før start, og hver deltager begynder ved sin egen station.",
-      workRest: "Der arbejdes 40 sekunder og skiftes i 20 sekunder. Efter en hel runde gives en kort fælles pause og ny instruktion før næste runde.",
-      activeParticipants: "Alle har en fast station eller en aktiv makkerrolle. Ingen venter på udstyr, og pauser bruges til let bevægelse, feedback eller klargøring.",
+      smallGroupRationale: "Deltagerne skifter mellem at lede rytmen, træne og give én aftalt teknikobservation. I spejlblokken justerer gruppen næste interval ud fra alles intensitetssignal. Roller og feedbacktid står i selve programmet.",
+      organization: "Udstyret klargøres inden start. Gruppen har 2 eller 3 deltagere og god indbyrdes afstand. I rolleblokken er der præcis én plads til hver deltager; efter en runde har alle prøvet alle roller.",
+      workRest: "Hver blok viser arbejdstid eller gentagelser, hele runder, skift, fælles pauser, instruktion og afslutning. Tiderne beregnes i sekunder. Ved gentagelser er tempo og et fast tidsvindue angivet; resterende tid er pause.",
+      activeParticipants: "Alle har en opgave: træne, lede eller give feedback. Teknikmakkeren går roligt på stedet; rollerne roterer, så alle får samme antal intervaller i hver rolle. Fælles pauser er reelle pauser til feedback og restitution.",
       intensityControl: "Intensiteten styres med RPE, taletesten og observation af teknik. Belastning, tempo, bevægeudslag, arbejdstid eller pause ændres ved behov.",
       instruction: "Hver øvelse forklares kort, demonstreres fra en synlig position og følges af ét tydeligt cue. Der gives konkret, anerkendende feedback undervejs.",
       logistics: "Tid til demonstration, stationsskift, justering af udstyr og vand er indregnet i blokkenes varighed og minutplanen.",
@@ -292,30 +292,8 @@
     return { total, arrival, warmup: state.warmupMinutes, main, mainTotal, cooldown };
   }
 
-  function mainProtocol(duration) {
-    const rounds = Math.max(1, Math.round(duration / 5));
-    return `40 sek. arbejde / 20 sek. skift · ca. ${rounds} ${rounds === 1 ? "runde" : "runder"}`;
-  }
-
   function createProgram() {
-    const ageShift = state.age === "60+" ? 0 : state.age === "45–59" ? 2 : state.age === "30–44" ? 4 : 6;
-    const timing = sessionDurations();
-    const warmup = addDosage(rotate(eligible(exercisePools.warmup), state.version + ageShift).slice(0, state.warmupMinutes), "warmup");
-    const result = [
-      block("arrival", "00", "Velkomst & briefing", "Skab tryghed og retning", timing.arrival, "Præsentér mål, udstyr, dagens intensitet og alternativer.", [], null),
-      block("warmup", "01", "Gradvis opvarmning", "Almen → specifik", timing.warmup, `${warmup.length} øvelser fordelt over ${state.warmupMinutes} min. Intensitet 3 → ${Math.min(state.intensity, 7)} / 10.`, warmup, "warmup")
-    ];
-
-    templates[state.sessionType].forEach((item, index) => {
-      const duration = timing.main[index];
-      const exerciseCount = duration <= 4 ? 2 : duration <= 8 ? 3 : 4;
-      const exercises = addDosage(rotate(eligible(exercisePools[item.pool]), state.version + index * 2 + ageShift).slice(0, exerciseCount), item.pool);
-      result.push(block(`main-${index}`, `0${index + 2}`, item.title, item.eyebrow, duration, mainProtocol(duration), exercises, item.pool));
-    });
-
-    const cooldownExercises = timing.cooldown <= 4 ? 3 : timing.cooldown <= 6 ? 4 : 5;
-    result.push(block("cooldown", "05", "Nedvarmning & afrunding", "Ro, vejrtrækning og feedback", timing.cooldown, "Gradvis lavere puls, rolige stræk og kort fælles evaluering.", addDosage(rotate(exercisePools.cooldown, state.version).slice(0, cooldownExercises), "cooldown"), "cooldown"));
-    return result;
+    return window.NextSession.generate(state, exercisePools);
   }
 
   function block(id, number, title, eyebrow, duration, protocol, exercises, pool) {
@@ -470,6 +448,7 @@
 
   function render(regenerate = true) {
     if (regenerate || !state.program.length) state.program = createProgram();
+    state.program.forEach(b => window.NextSession.syncBlock(b, state.assignment.participantCount));
     const totalMinutes = state.program.reduce((sum, item) => sum + item.duration, 0);
     document.getElementById("program-title").textContent = state.sessionType;
     document.getElementById("program-meta").textContent = `${state.age} år · ${state.level} · ${totalMinutes} min · intensitet ${state.intensity}/10 · ${state.equipment}`;
@@ -644,7 +623,7 @@
     const has = (...keys) => keys.every(key => String(assignment[key] || "").trim().length >= 12);
     return [
       { label: "2-3 deltagerprofiler er beskrevet", done: participantProfilesReady },
-      { label: "Programmet giver præcis 55 minutter", done: state.program.reduce((sum, item) => sum + item.duration, 0) === 55 },
+      { label: "Tidsregnskabet er kontrolleret og giver præcis 55 minutter", done: state.program.reduce((sum, item) => sum + item.duration, 0) === 55 && window.NextSession.report(state.program, assignment.participantCount, state.sessionMinutes).valid },
       { label: "Formål og træningsform er begrundet", done: has("purpose", "formRationale") },
       { label: "Opvarmning og nedvarmning hænger sammen med timen", done: has("warmupRationale", "warmupConnection", "cooldownRationale") },
       { label: "Organisering, arbejdstid, pauser og skift er beskrevet", done: has("organization", "workRest", "logistics") },

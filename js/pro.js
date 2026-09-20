@@ -2,6 +2,8 @@
   "use strict";
   const A = window.NEXTPlanner;
   const S = A.state;
+  const E = window.NextSession;
+  let clientView = true;
   const h = A.escapeHtml;
   const clone = value => JSON.parse(JSON.stringify(value));
   const $ = id => document.getElementById(id);
@@ -9,7 +11,7 @@
   const uid = () => window.crypto?.randomUUID?.() || Date.now().toString(36) + Math.random().toString(36).slice(2);
   const categories = { warmup: "Opvarmning", lower: "Underkrop", upper: "Overkrop", core: "Core", pulse: "Puls", cooldown: "Bevægelighed" };
   const defaults = { title: "Mit træningsprogram", client: "", trainer: "", organization: "NEXT · Fitness", date: today(), goal: "", notes: "" };
-  const pdfDefaults = { perPage: 2, fontSize: "normal", images: true, anatomy: true, cues: true, variations: true, videos: true, qr: true, music: true, assignment: true, practical: true };
+  const pdfDefaults = { layout: "client", perPage: 2, fontSize: "normal", images: true, anatomy: true, cues: true, variations: true, videos: true, qr: true, music: true, assignment: true, practical: true };
   let meta = { ...defaults }, pdf = { ...pdfDefaults }, custom = [], favorites = [], libraryOverrides = {}, saved = [], undo = [], redo = [];
   let saveTimer, searchTimer, replaceTarget = null, activeSnapshotId = null, booting = true;
   let layoutPerPage = null, printing = false;
@@ -29,13 +31,13 @@
   const total = () => S.program.reduce((sum, b) => sum + b.duration, 0);
   const input = (label, key, value, type = "text", extra = "") => `<label><span>${h(label)}</span><input type="${type}" name="${h(key)}" value="${h(value ?? "")}" ${extra}></label>`;
   const textarea = (label, key, value, rows = 2) => `<label class="wide"><span>${h(label)}</span><textarea name="${h(key)}" rows="${rows}" maxlength="3000">${h(value || "")}</textarea></label>`;
-  const select = (label, key, value, options) => `<label><span>${h(label)}</span><select name="${h(key)}">${Object.entries(options).map(([v, t]) => `<option value="${h(v)}" ${String(v) === String(value) ? "selected" : ""}>${h(t)}</option>`).join("")}</select></label>`;
+  const select = (label, key, value, options) => `<label><span>${h(label)}</span><select name="${h(key)}" aria-label="${h(label)}">${Object.entries(options).map(([v, t]) => `<option value="${h(v)}" ${String(v) === String(value) ? "selected" : ""}>${h(t)}</option>`).join("")}</select></label>`;
   function notify(message, error = false) { $("pro-status").textContent = message; $("pro-status").classList.toggle("error", error); }
   function read(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch (_) { return fallback; } }
   function write(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (_) { notify("Browseren kunne ikke gemme. Download en programfil som sikkerhedskopi.", true); return false; } }
-  function snapshot() { return { format: "NEXT-training", version: 3, savedAt: new Date().toISOString(), settings: clone(S), meta: clone(meta), pdf: clone(pdf), custom: clone(custom), libraryOverrides: clone(libraryOverrides), favorites: [...favorites] }; }
+  function snapshot() { return { format: "NEXT-training", version: 4, savedAt: new Date().toISOString(), settings: clone(S), meta: clone(meta), pdf: clone(pdf), custom: clone(custom), libraryOverrides: clone(libraryOverrides), favorites: [...favorites] }; }
   function remember() { undo.push(snapshot()); if (undo.length > 20) undo.shift(); redo = []; }
-  function refresh() { S.program.forEach((b, i) => b.number = String(i).padStart(2, "0")); A.syncControls(); A.syncAssignmentForm(); A.render(false); syncMeta(); syncPdf(); syncTargets(); renderSaved(); updateSummary(); A.markUnsaved(); }
+  function refresh() { S.program.forEach((b, i) => { b.number = String(i).padStart(2, "0"); E.syncBlock(b, S.assignment.participantCount); }); A.syncControls(); A.syncAssignmentForm(); A.render(false); syncMeta(); syncPdf(); syncTargets(); renderSaved(); updateSummary(); A.markUnsaved(); }
   function restore(value) {
     const clean = validateSnapshot(value);
     Object.assign(S, clean.settings); meta = clean.meta; pdf = clean.pdf;
@@ -52,9 +54,25 @@
     $("fit-time").hidden = total() === S.sessionMinutes;
     $("undo-program").disabled = !undo.length; $("redo-program").disabled = !redo.length;
     $("program-title").textContent = meta.title || S.sessionType;
+    const check = E.report(S.program, S.assignment.participantCount, S.sessionMinutes);
+    $("clock-status").textContent = check.valid ? `Alle blokke er kontrolleret: ${E.stamp(check.seconds)} i alt, inklusive instruktion, pauser og skift.` : `Tiden skal afklares i ${check.blocks.filter(b => !b.valid).length} blokke${check.seconds !== check.targetSeconds ? "; samlet tid matcher ikke dit tidsmål" : ""}. Brug Redigér program eller lav et nyt kontrolleret forslag.`;
+    $("clock-status").classList.toggle("clock-error", !check.valid);
+    $("group-size").value = S.assignment.participantCount;
+    renderClientView();
   }
   function syncMeta() { document.querySelectorAll("[data-meta]").forEach(el => el.value = meta[el.dataset.meta] || ""); }
-  function syncPdf() { document.querySelectorAll("[data-pdf]").forEach(el => { if (el.type === "checkbox") el.checked = !!pdf[el.dataset.pdf]; else el.value = pdf[el.dataset.pdf]; }); $("pdf-preset").value = pdf.assignment || pdf.music || pdf.practical ? "next" : "client"; }
+  function syncPdf() {
+    document.querySelectorAll("[data-pdf]").forEach(el => { if (el.type === "checkbox") el.checked = !!pdf[el.dataset.pdf]; else el.value = pdf[el.dataset.pdf]; });
+    $("pdf-preset").value = pdf.layout;
+    document.querySelectorAll("[data-detail-pdf]").forEach(el => el.hidden = pdf.layout === "client");
+  }
+  function clientHTML() { return window.NextClient.render({ state: S, meta, imageURL, videoURL, h }); }
+  function renderClientView() {
+    const target = $("client-program-view"); if (!target) return;
+    target.innerHTML = clientHTML(); target.hidden = !clientView;
+    $("program-timeline").hidden = clientView;
+    $("view-client").setAttribute("aria-pressed", String(clientView)); $("view-editor").setAttribute("aria-pressed", String(!clientView));
+  }
   function syncTargets() {
     const field = $("library-target"), selected = field.value;
     field.innerHTML = S.program.map((b, i) => `<option value="${i}">${h(b.title)}</option>`).join("");
@@ -83,12 +101,15 @@
     refresh(); notify(`Minutplanen er fordelt til præcis ${target} minutter. Kontrollér dosering og pauser.`);
   }
   function editBlock(index) {
-    const b = S.program[index];
-    dialog("Redigér blok", `<div class="pro-form-grid">${input("Blokkens navn", "title", b.title, "text", 'required maxlength="100"')}${input("Varighed i minutter", "duration", b.duration, "number", 'required min="1" max="180"')}${textarea("Instruktion, arbejde og pauser", "protocol", b.protocol)}</div>`, "Gem blok", data => {
-      const duration = checkNumber(data.get("duration"), 1, 180, "Varigheden");
-      const nextTotal = total() - b.duration + duration;
+    const b = S.program[index], c = b.clock || { kind: "together", intro: 60, transition: 20, roundRest: 30, window: 40 };
+    dialog("Redigér blok og tidsregnskab", `<div class="pro-form-grid">${input("Blokkens navn", "title", b.title, "text", 'required maxlength="100"')}${input("Varighed i minutter", "duration", b.duration, "number", 'required min="1" max="180"')}${select("Samarbejdsform", "kind", c.kind, { together: "Fælles rytme og makkerfeedback", roles: "Skift mellem træner og teknikmakker", mirror: "Følg lederen / spejlgruppen", warmup: "Opvarmning i faser", cooldown: "Nedvarmning", briefing: "Velkomst / instruktion" })}${input("Instruktion før første runde (sek.)", "intro", c.intro, "number", 'required min="0" max="600"')}${input("Skift efter hver øvelse (sek.)", "transition", c.transition, "number", 'required min="0" max="600"')}${input("Fælles pause mellem runder (sek.)", "roundRest", c.roundRest, "number", 'required min="0" max="600"')}${input("Tidsvindue ved gentagelser (sek.)", "window", c.window || 40, "number", 'required min="5" max="600"')}</div><p class="form-help">Hele runder beregnes ud fra øvelsernes dosering. Resttiden afsættes til vand, feedback og klargøring. Ved gentagelser er bevægelsestiden antal × sekunder pr. gentagelse; den øvrige tid i vinduet er pause. ${b.clock ? "" : "En gammel blok uden tidsmodel sættes til tidsstyring, når du gemmer."}</p>`, "Gem beregnet blok", data => {
+      const changed = clone(b), duration = checkNumber(data.get("duration"), 1, 180, "Varigheden"), nextTotal = total() - b.duration + duration;
       if (nextTotal < 20 || nextTotal > 180) throw Error("Det samlede program skal være 20–180 minutter.");
-      remember(); b.title = data.get("title").trim(); b.protocol = data.get("protocol"); b.duration = duration; S.sessionMinutes = nextTotal; refresh(); notify("Blokken er opdateret.");
+      if (!changed.clock) E.adopt(changed, S.assignment.participantCount);
+      changed.title = data.get("title").trim(); changed.duration = duration;
+      changed.clock = { version: 1, kind: data.get("kind"), intro: checkNumber(data.get("intro"), 0, 600, "Instruktion"), transition: checkNumber(data.get("transition"), 0, 600, "Skift"), roundRest: checkNumber(data.get("roundRest"), 0, 600, "Fælles pause"), window: checkNumber(data.get("window"), 5, 600, "Gentagelsesvindue") };
+      const checked = E.analyze(changed, S.assignment.participantCount); if (!checked.valid) throw Error(checked.errors.join(" "));
+      remember(); S.program[index] = changed; S.sessionMinutes = nextTotal; refresh(); notify("Blokken er genberegnet. Alle sekunder er fordelt.");
     });
   }
   function addBlock() {
@@ -98,7 +119,10 @@
     S.program.splice(Math.max(1, S.program.length - 1), 0, { id: uid(), number: String(S.program.length), title: "Ny træningsblok", eyebrow: "Egen blok", duration, protocol: "", pool: "core", exercises: [] });
     S.sessionMinutes = total(); refresh(); notify("Ny blok tilføjet. Vælg øvelser fra biblioteket.");
   }
-  function blockTools(b) { return `<div class="block-tools"><button type="button" data-pro="edit-block" data-b="${b}">Redigér blok</button><button type="button" data-pro="add-to-block" data-b="${b}">+ Tilføj øvelse</button><button type="button" data-pro="remove-block" data-b="${b}">Fjern blok</button></div>`; }
+  function blockTools(b) {
+    const a = E.analyze(S.program[b], S.assignment.participantCount);
+    return `<div class="block-tools"><button type="button" data-pro="edit-block" data-b="${b}">Redigér blok</button><button type="button" data-pro="add-to-block" data-b="${b}">+ Tilføj øvelse</button><button type="button" data-pro="remove-block" data-b="${b}">Fjern blok</button></div><div class="block-clock ${a.valid ? "" : "clock-error"}"><p><b>${a.valid ? "Tiden er kontrolleret" : "Tiden skal afklares"}</b> · ${a.valid ? `${a.rounds} hele runder` : h(a.errors.join(" "))}</p>${a.valid ? `<p>${h(a.cooperation || "")}</p><details><summary>Se tidslinjen i sekunder</summary><ol>${a.steps.map(x => `<li><time>${E.stamp(x.start)}–${E.stamp(x.end)}</time><span>${h(x.label)}</span></li>`).join("")}</ol></details>` : ""}</div>`;
+  }
   function prescription(ex) {
     const parts = [];
     if (ex.sets) parts.push(`${ex.sets} sæt`);
@@ -109,7 +133,7 @@
     return parts.join(" · ");
   }
   function exerciseHTML(ex, b, e) {
-    return `<div class="exercise-row" data-b="${b}" data-e="${e}"><button class="exercise-main" type="button" aria-expanded="false"><span class="exercise-index">${String(e + 1).padStart(2, "0")}</span><span><strong>${h(ex.name)}</strong><small>${h(ex.focus)} · ${h(ex.equipment)}</small></span><span class="details-toggle">+</span></button><div class="exercise-tools"><button type="button" data-pro="edit-exercise" data-b="${b}" data-e="${e}">Redigér</button><button type="button" data-pro="replace" data-b="${b}" data-e="${e}">Udskift</button><button type="button" data-pro="up" data-b="${b}" data-e="${e}" ${e === 0 ? "disabled" : ""} aria-label="Flyt ${h(ex.name)} op">↑</button><button type="button" data-pro="down" data-b="${b}" data-e="${e}" ${e === S.program[b].exercises.length - 1 ? "disabled" : ""} aria-label="Flyt ${h(ex.name)} ned">↓</button><button type="button" data-pro="remove-exercise" data-b="${b}" data-e="${e}" aria-label="Fjern ${h(ex.name)}">Fjern</button></div><div class="exercise-details" hidden><label class="exercise-dose-field"><span>Gentagelser / arbejdstid</span><input class="exercise-dose-input" type="text" maxlength="180" value="${h(ex.dosage || A.dosageFor(S.program[b].pool))}" data-block="${b}" data-exercise="${e}"></label>${prescription(ex) ? `<p class="prescription">${h(prescription(ex))}</p>` : ""}<div class="coaching-grid"><div><span>Cue</span><p>${h(ex.cue)}</p></div><div><span>Regression</span><p>${h(ex.regression)}</p></div><div><span>Progression</span><p>${h(ex.progression)}</p></div></div>${ex.notes ? `<p class="exercise-note">${h(ex.notes)}</p>` : ""}${visualHTML(ex)}${videoURL(ex) ? `<a class="video-link" href="${h(videoURL(ex))}" target="_blank" rel="noopener noreferrer">Åbn instruktionsvideo ↗</a>` : ""}</div></div>`;
+    return `<div class="exercise-row" data-b="${b}" data-e="${e}"><button class="exercise-main" type="button" aria-expanded="false"><span class="exercise-index">${String(e + 1).padStart(2, "0")}</span><span><strong>${h(ex.name)}</strong><small>${h(ex.focus)} · ${h(ex.equipment)}</small></span><span class="details-toggle">+</span></button><div class="exercise-tools"><button type="button" data-pro="edit-exercise" data-b="${b}" data-e="${e}">Redigér</button><button type="button" data-pro="replace" data-b="${b}" data-e="${e}">Udskift</button><button type="button" data-pro="up" data-b="${b}" data-e="${e}" ${e === 0 ? "disabled" : ""} aria-label="Flyt ${h(ex.name)} op">↑</button><button type="button" data-pro="down" data-b="${b}" data-e="${e}" ${e === S.program[b].exercises.length - 1 ? "disabled" : ""} aria-label="Flyt ${h(ex.name)} ned">↓</button><button type="button" data-pro="remove-exercise" data-b="${b}" data-e="${e}" aria-label="Fjern ${h(ex.name)}">Fjern</button></div><div class="exercise-details" hidden><label class="exercise-dose-field"><span>Gentagelser / arbejdstid</span><input class="exercise-dose-input" readonly title="Brug Redigér til at vælge tid eller gentagelser" type="text" maxlength="180" value="${h(ex.dosage || A.dosageFor(S.program[b].pool))}" data-block="${b}" data-exercise="${e}"></label>${prescription(ex) ? `<p class="prescription">${h(prescription(ex))}</p>` : ""}<div class="coaching-grid"><div><span>Cue</span><p>${h(ex.cue)}</p></div><div><span>Regression</span><p>${h(ex.regression)}</p></div><div><span>Progression</span><p>${h(ex.progression)}</p></div></div>${ex.notes ? `<p class="exercise-note">${h(ex.notes)}</p>` : ""}${visualHTML(ex)}${videoURL(ex) ? `<a class="video-link" href="${h(videoURL(ex))}" target="_blank" rel="noopener noreferrer">Åbn instruktionsvideo ↗</a>` : ""}</div></div>`;
   }
   function visualHTML(ex) {
     const g = ex.guide || { start: "", finish: "", muscles: [], roles: [] }, image = imageURL(ex);
@@ -128,6 +152,7 @@
   }
   function renderPrint() {
     if (printing && document.body.classList.contains("printing-full-program")) return;
+    if (pdf.layout === "client") { $("print-exercise-pages").innerHTML = clientHTML(); return; }
     const entries = S.program.flatMap((b, bi) => b.exercises.map(ex => ({ ex, b, bi })));
     const size = layoutPerPage || Number(pdf.perPage), pages = [];
     for (let i = 0; i < entries.length; i += size) {
@@ -148,9 +173,9 @@
     })].filter(Boolean).join("\n");
   }
   function printDocumentHTML() {
-    const ids = ["pro-print-summary", ...(pdf.assignment ? ["assignment-print-summary"] : []), ...(pdf.music ? ["print-music-sheet"] : []), "print-exercise-pages", ...(pdf.practical ? ["print-practical-sheet"] : [])];
+    const ids = pdf.layout === "client" ? ["print-exercise-pages"] : ["pro-print-summary", ...(pdf.assignment ? ["assignment-print-summary"] : []), ...(pdf.music ? ["print-music-sheet"] : []), "print-exercise-pages", ...(pdf.practical ? ["print-practical-sheet"] : [])];
     const content = ids.map(id => { const el = $(id).cloneNode(true); el.removeAttribute("aria-hidden"); return el.outerHTML; }).join("");
-    return `<!doctype html><html lang="da"><head><meta charset="utf-8"><base href="${h(new URL(".", document.baseURI).href)}"><title>${h(meta.title)}</title><link rel="stylesheet" href="css/style.css?v=3.2"><link rel="stylesheet" href="css/pro.css?v=3.2"><link rel="stylesheet" href="css/print.css?v=3.2"></head><body class="pdf-document-preview">${content}</body></html>`;
+    return `<!doctype html><html lang="da"><head><meta charset="utf-8"><base href="${h(new URL(".", document.baseURI).href)}"><title>${h(meta.title)}</title><link rel="stylesheet" href="css/style.css?v=4.2"><link rel="stylesheet" href="css/pro.css?v=4.2"><link rel="stylesheet" href="css/print.css?v=4.2"><link rel="stylesheet" href="css/client.css?v=4.2"></head><body class="pdf-document-preview ${pdf.layout === "client" ? "client-output" : ""}">${content}</body></html>`;
   }
   async function readyFrame(frame) {
     await frame.contentDocument.fonts.ready;
@@ -168,6 +193,13 @@
       frame.srcdoc = html;
     });
     await readyFrame(frame);
+    if (pdf.layout === "client") {
+      const target = frame.contentDocument.getElementById("print-exercise-pages"), pages = Array.from(target.querySelectorAll(".client-sheet"));
+      const large = pages.filter(page => page.scrollHeight > page.clientHeight + 2);
+      large.forEach(page => page.classList.add("client-flow"));
+      $("print-exercise-pages").innerHTML = target.innerHTML;
+      return large.length ? "Lange tekster eller mange øvelser fortsætter på ekstra sider. Alt indhold bevares; kontrollér sideskiftene i udskriftsvinduet." : `Kundeprogram: ${pages.length} A4-sider. Vælg A4, 100 % og slå browserens egne sidehoveder fra.`;
+    }
     const sizes = [6, 4, 2, 1].filter(n => n <= Number(pdf.perPage));
     let longPages = 0;
     for (const size of sizes) {
@@ -192,6 +224,8 @@
   }
   async function printProgram(event) {
     if (printing) return;
+    const check = E.report(S.program, S.assignment.participantCount, S.sessionMinutes);
+    if (!check.valid) return notify("Ret tidsregnskabet i de markerede blokke, før du udskriver. Du kan se dem under Redigér program.", true);
     printing = true;
     const button = event?.currentTarget, label = button?.textContent;
     if (button) { button.disabled = true; button.textContent = "Forbereder PDF …"; }
@@ -208,6 +242,7 @@
     finally { frame.remove(); A.restoreAfterPrint(); printing = false; if (button) { button.disabled = false; button.textContent = label; } }
   }
   function preparePrint() {
+    document.body.classList.toggle("client-output", pdf.layout === "client");
     ["music", "assignment", "practical"].forEach(key => document.body.classList.toggle("pro-no-" + key, !pdf[key]));
     let minute = 0;
     $("pro-print-summary").innerHTML = `<header><img src="assets/images/next-logo.png" alt="NEXT"><span>${h(meta.organization)}</span></header><p class="pro-kicker">TRÆNINGSPROGRAM · ${h(meta.date)}</p><h1>${h(meta.title || "Træningsprogram")}</h1><div class="print-client-row"><div><small>UDARBEJDET TIL</small><strong>${h(meta.client || "Hold / individuel træning")}</strong></div><div><small>INSTRUKTØR</small><strong>${h(meta.trainer || "Ikke angivet")}</strong></div><div><small>VARIGHED</small><strong>${total()} min</strong></div></div>${meta.goal ? `<h2>Mål</h2><p>${h(meta.goal)}</p>` : ""}${meta.notes ? `<h2>Fokus og hensyn</h2><p>${h(meta.notes)}</p>` : ""}<h2>Minutplan</h2><table><thead><tr><th>Tid</th><th>Blok</th><th>Instruktion</th></tr></thead><tbody>${S.program.map(b => { let start = minute; minute += b.duration; return `<tr><td>${start}–${minute} min</td><td>${h(b.title)}</td><td>${h(b.protocol)}</td></tr>`; }).join("")}</tbody></table><p class="print-profile">${h(S.age)} år · ${h(S.level)} · ${h(S.sessionType)} · Intensitet ${S.intensity}/10</p>`;
@@ -229,7 +264,9 @@
     const b = replaceTarget ? replaceTarget.b : Number($("library-target").value);
     if (!S.program[b]) return;
     if (S.program.flatMap(b => b.exercises).length >= 100) return notify("Et program kan indeholde op til 100 øvelser.", true);
-    remember(); const ex = clone(source); ex.dosage ||= A.dosageFor(S.program[b].pool);
+    remember(); const ex = clone(source);
+    if (replaceTarget) { const before = S.program[b].exercises[replaceTarget.e]; ["dose", "transitionSeconds", "phase", "phaseIndex", "targetRpe"].forEach(k => { if (before[k] !== undefined) ex[k] = clone(before[k]); }); }
+    ex.dose ||= { mode: "time", seconds: S.program[b].clock?.window || 40 }; ex.dosage = E.doseLabel(ex, S.program[b].clock).text;
     if (replaceTarget) S.program[b].exercises[replaceTarget.e] = ex; else S.program[b].exercises.push(ex);
     replaceTarget = null; $("library-mode").hidden = true; refresh(); renderLibrary(); notify(`${ex.name} er tilføjet til ${S.program[b].title}.`);
   }
@@ -255,13 +292,18 @@
     const ex = isNew ? { id: uid(), custom: true, name: "", equipment: "Kropsvægt", category: "lower", lowImpact: true, guide: { muscles: [], roles: [] } } : libraryExercise || S.program[b].exercises[e];
     const g = ex.guide || { muscles: [] };
     const blocks = Object.fromEntries(S.program.map((item, i) => [i, item.title]));
-    dialog(isNew ? "Opret egen øvelse" : "Redigér " + ex.name, `<div class="pro-form-grid">${input("Øvelsens navn", "name", ex.name, "text", 'required maxlength="100"')}${select("Udstyr", "equipment", ex.equipment, { "Kropsvægt": "Kropsvægt", "Måtte": "Måtte", "Håndvægte": "Håndvægte", "Elastik": "Elastik", "Andet": "Andet" })}${input("Gentagelser / arbejdstid", "dosage", ex.dosage || "", "text", 'maxlength="180" placeholder="Fx 8–12 gentagelser"')}${input("Sæt", "sets", ex.sets, "number", 'min="1" max="50"')}${input("Pause", "rest", ex.rest, "text", 'maxlength="100" placeholder="Fx 60 sek."')}${input("Belastning", "load", ex.load, "text", 'maxlength="100" placeholder="Fx 2 × 10 kg"')}${input("Tempo", "tempo", ex.tempo, "text", 'maxlength="100" placeholder="Fx 3–1–1"')}${input("Intensitet (RPE 1–10)", "rpe", ex.rpe, "number", 'min="1" max="10"')}${isLibrary ? select("Kategori", "category", ex.category || "lower", categories) : select("Placér i blok", "target", b, blocks)}${input("Link til instruktionsvideo", "video", videoURL(ex), "url", 'maxlength="1000" placeholder="https://…"')}${textarea("Startposition", "start", g.start)}${textarea("Bevægelse", "finish", g.finish)}${textarea("Instruktørens cue", "cue", ex.cue)}${textarea("Lettere variation", "regression", ex.regression)}${textarea("Sværere variation", "progression", ex.progression)}${textarea("Noter til øvelsen", "notes", ex.notes)}<label class="wide"><span>Eget billede (PNG, JPG, WebP · maks. 2 MB)</span><input type="file" name="image" accept="image/png,image/jpeg,image/webp"></label>${ex.image ? '<label class="pro-check"><input type="checkbox" name="removeImage"> Fjern eget billede</label>' : ""}<label class="pro-check"><input type="checkbox" name="lowImpact" ${ex.lowImpact ? "checked" : ""}> Uden hop</label><fieldset class="muscle-picker wide"><legend>Muskelgrupper</legend>${Object.entries(A.muscleGroups).map(([k, v]) => `<label class="pro-check"><input type="checkbox" name="muscles" value="${k}" ${(g.muscles || []).includes(k) ? "checked" : ""}>${h(v.danish)}</label>`).join("")}</fieldset></div>`, isNew ? "Opret i bibliotek" : "Gem ændringer", async data => {
+    dialog(isNew ? "Opret egen øvelse" : "Redigér " + ex.name, `<div class="pro-form-grid">${input("Øvelsens navn", "name", ex.name, "text", 'required maxlength="100"')}${select("Udstyr", "equipment", ex.equipment, { "Kropsvægt": "Kropsvægt", "Måtte": "Måtte", "Håndvægte": "Håndvægte", "Elastik": "Elastik", "Andet": "Andet" })}${select("Doseringstype", "doseMode", ex.dose?.mode || "time", { time: "TID – arbejde til signalet", reps: "GENTAGELSER – antal i et fast tidsvindue" })}<div data-dose-time>${input("Arbejdstid (sekunder)", "workSeconds", ex.dose?.seconds || 40, "number", 'min="5" max="600"')}</div><div data-dose-reps>${input("Gentagelser i alt", "reps", ex.dose?.reps || 8, "number", 'min="1" max="60"')}</div><div data-dose-reps>${input("Sekunder pr. gentagelse", "repTempo", ex.dose?.tempo || 4, "number", 'min="1" max="10"')}</div><p class="form-help wide">Runder, skift og fælles pauser beregnes i blokken. Ved øvelser på to sider er antal gentagelser det samlede antal; fordel dem ligeligt mellem siderne.</p>${input("Belastning", "load", ex.load, "text", 'maxlength="100" placeholder="Fx 2 × 10 kg"')}${input("Intensitet (RPE 1–10)", "rpe", ex.rpe || (/^\d+$/.test(ex.targetRpe || "") ? ex.targetRpe : ""), "number", 'min="1" max="10"')}${isLibrary ? select("Kategori", "category", ex.category || "lower", categories) : select("Placér i blok", "target", b, blocks)}${input("Link til instruktionsvideo", "video", videoURL(ex), "url", 'maxlength="1000" placeholder="https://…"')}${textarea("Startposition", "start", g.start)}${textarea("Bevægelse", "finish", g.finish)}${textarea("Instruktørens cue", "cue", ex.cue)}${input("Kundenavn på øvelsen (valgfrit)", "clientName", ex.clientName, "text", 'maxlength="180"')}${textarea("Kort instruktion til kunden (valgfrit)", "clientCue", ex.clientCue)}${textarea("Lettere variation", "regression", ex.regression)}${textarea("Sværere variation", "progression", ex.progression)}${textarea("Noter til øvelsen", "notes", ex.notes)}<label class="wide"><span>Eget billede (PNG, JPG, WebP · maks. 2 MB)</span><input type="file" name="image" accept="image/png,image/jpeg,image/webp"></label>${ex.image ? '<label class="pro-check"><input type="checkbox" name="removeImage"> Fjern eget billede</label>' : ""}<label class="pro-check"><input type="checkbox" name="lowImpact" ${ex.lowImpact ? "checked" : ""}> Uden hop</label><fieldset class="muscle-picker wide"><legend>Muskelgrupper</legend>${Object.entries(A.muscleGroups).map(([k, v]) => `<label class="pro-check"><input type="checkbox" name="muscles" value="${k}" ${(g.muscles || []).includes(k) ? "checked" : ""}>${h(v.danish)}</label>`).join("")}</fieldset></div>`, isNew ? "Opret i bibliotek" : "Gem ændringer", async data => {
       const url = data.get("video").trim(); if (url && !safeURL(url)) throw Error("Videolinket skal begynde med http:// eller https://.");
       const image = await loadImage(data.get("image"));
       const muscles = data.getAll("muscles").filter(k => A.muscleGroups[k]);
       const changed = { ...clone(ex), id: ex.id || ex.name, name: data.get("name").trim(), equipment: data.get("equipment"), lowImpact: data.has("lowImpact"), video: safeURL(url), guide: { start: data.get("start"), finish: data.get("finish"), muscles, roles: muscles.map(k => g.roles?.[(g.muscles || []).indexOf(k)] || "") } };
       if (!changed.name) throw Error("Giv øvelsen et navn.");
-      ["dosage", "sets", "rest", "load", "tempo", "rpe", "cue", "regression", "progression", "notes"].forEach(k => changed[k] = data.get(k) || "");
+      ["load", "rpe", "cue", "clientName", "clientCue", "regression", "progression", "notes"].forEach(k => changed[k] = data.get(k) || "");
+      changed.dose = data.get("doseMode") === "reps" ? { mode: "reps", reps: checkNumber(data.get("reps"), 1, 60, "Gentagelser"), tempo: checkNumber(data.get("repTempo"), 1, 10, "Tempo") } : { mode: "time", seconds: checkNumber(data.get("workSeconds"), 5, 600, "Arbejdstid") };
+      delete changed.sets; delete changed.rest; delete changed.tempo;
+      if (changed.rpe) changed.targetRpe = changed.rpe;
+      changed.dosage = E.doseLabel(changed, !isLibrary ? S.program[Number(data.get("target"))].clock : {}).text;
+      if (!isLibrary) { const target = Number(data.get("target")), trial = clone(S.program[target]); if (target === b) trial.exercises[e] = changed; else trial.exercises.push(changed); if (trial.clock) { const result = E.analyze(trial, S.assignment.participantCount); if (!result.valid) throw Error(result.errors.join(" ")); } }
       changed.focus = muscles.map(k => A.muscleGroups[k].danish).slice(0, 3).join(" · ") || "Egen øvelse";
       if (image) changed.image = image; else if (data.has("removeImage")) delete changed.image;
       remember();
@@ -269,14 +311,22 @@
       else { const target = Number(data.get("target")); if (target !== b) { S.program[b].exercises.splice(e, 1); S.program[target].exercises.push(changed); } else S.program[b].exercises[e] = changed; }
       refresh(); renderLibrary(); notify(isLibrary ? "Øvelsen er gemt i dit bibliotek." : "Øvelsen er opdateret.");
     }, "wide-dialog");
+    const mode = $("pro-dialog").querySelector('[name="doseMode"]');
+    const syncDoseFields = () => { $("pro-dialog").querySelectorAll("[data-dose-time]").forEach(el => el.hidden = mode.value !== "time"); $("pro-dialog").querySelectorAll("[data-dose-reps]").forEach(el => el.hidden = mode.value !== "reps"); };
+    mode.onchange = syncDoseFields; syncDoseFields();
   }
   function validateSnapshot(raw) {
-    if (!raw || raw.format !== "NEXT-training" || raw.version !== 3 || !raw.settings || !Array.isArray(raw.settings.program)) throw Error("Filen er ikke en NEXT-programfil (version 3).");
+    if (!raw || raw.format !== "NEXT-training" || ![3, 4].includes(raw.version) || !raw.settings || !Array.isArray(raw.settings.program)) throw Error("Filen er ikke en NEXT-programfil (version 3 eller 4).");
     const text = (x, n = 3000) => String(x ?? "").slice(0, n);
     const enumValue = (x, values, fallback) => values.includes(x) ? x : fallback;
     const cleanExercise = ex => {
       if (!ex || typeof ex !== "object") throw Error("Filen indeholder en ugyldig øvelse.");
       const out = {}; ["id", "name", "focus", "equipment", "dosage", "sets", "rest", "load", "tempo", "rpe", "cue", "regression", "progression", "notes"].forEach(k => out[k] = text(ex[k], ["notes", "cue", "regression", "progression"].includes(k) ? 3000 : 180));
+      ["clientName", "clientCue", "phase", "targetRpe"].forEach(k => out[k] = text(ex[k], k === "clientCue" ? 3000 : 180));
+      if (ex.phaseIndex !== undefined) out.phaseIndex = checkNumber(ex.phaseIndex, 0, 3, "Opvarmningsfase");
+      if (ex.transitionSeconds !== undefined) out.transitionSeconds = checkNumber(ex.transitionSeconds, 0, 600, "Skift");
+      if (ex.dose?.mode === "time") out.dose = { mode: "time", seconds: checkNumber(ex.dose.seconds, 5, 600, "Arbejdstid") };
+      if (ex.dose?.mode === "reps") out.dose = { mode: "reps", reps: checkNumber(ex.dose.reps, 1, 60, "Gentagelser"), tempo: checkNumber(ex.dose.tempo, 1, 10, "Tempo") };
       if (!out.name) throw Error("En øvelse mangler et navn.");
       out.video = safeURL(text(ex.video, 1000)); out.lowImpact = !!ex.lowImpact; out.custom = !!ex.custom;
       out.category = enumValue(ex.category, Object.keys(categories), "lower"); out.categories = [out.category];
@@ -293,7 +343,8 @@
     settings.sessionMinutes = checkNumber(src.sessionMinutes, 20, 180, "Sessionstid"); settings.warmupMinutes = checkNumber(src.warmupMinutes, 5, 10, "Opvarmning"); settings.intensity = checkNumber(src.intensity, 3, 9, "Intensitet"); settings.version = Number(src.version) || 0;
     if (!src.program.length || src.program.length > 20) throw Error("Programmet skal indeholde 1–20 blokke.");
     let count = 0;
-    settings.program = src.program.map((b, i) => { if (!Array.isArray(b.exercises)) throw Error("Ugyldig træningsblok."); count += b.exercises.length; return { id: text(b.id, 100), number: String(i).padStart(2, "0"), title: text(b.title, 100), eyebrow: text(b.eyebrow, 100), duration: checkNumber(b.duration, 1, 180, "Bloktid"), protocol: text(b.protocol), pool: enumValue(b.pool, Object.keys(categories), "core"), exercises: b.exercises.map(cleanExercise) }; });
+    const cleanClock = c => c?.version === 1 ? { version: 1, kind: enumValue(c.kind, ["briefing", "warmup", "cooldown", "together", "roles", "mirror"], "together"), intro: checkNumber(c.intro || 0, 0, 600, "Instruktion"), transition: checkNumber(c.transition || 0, 0, 600, "Skift"), roundRest: checkNumber(c.roundRest || 0, 0, 600, "Fælles pause"), window: checkNumber(c.window || 40, 5, 600, "Gentagelsesvindue") } : undefined;
+    settings.program = src.program.map((b, i) => { if (!Array.isArray(b.exercises)) throw Error("Ugyldig træningsblok."); count += b.exercises.length; return { id: text(b.id, 100), number: String(i).padStart(2, "0"), title: text(b.title, 100), eyebrow: text(b.eyebrow, 100), duration: checkNumber(b.duration, 1, 180, "Bloktid"), protocol: text(b.protocol), clock: cleanClock(b.clock), pool: enumValue(b.pool, Object.keys(categories), "core"), exercises: b.exercises.map(cleanExercise) }; });
     const sum = settings.program.reduce((n, b) => n + b.duration, 0);
     if (sum < 20 || sum > 180 || count > 100) throw Error("Programmet skal være 20–180 minutter og højst 100 øvelser.");
     Object.keys(settings.assignment).filter(k => k !== "participants").forEach(k => settings.assignment[k] = text(src.assignment?.[k], k === "participantCount" ? 1 : 5000));
@@ -301,6 +352,7 @@
     settings.assignment.participants = [0, 1, 2].map(i => Object.fromEntries(["name", "profile", "needs"].map(k => [k, text(src.assignment?.participants?.[i]?.[k])])));
     const cleanMeta = Object.fromEntries(Object.keys(defaults).map(k => [k, text(raw.meta?.[k] ?? defaults[k], ["title", "client", "trainer", "organization", "date"].includes(k) ? 180 : 3000)]));
     const cleanPdf = { ...pdfDefaults }; Object.keys(cleanPdf).forEach(k => { if (typeof pdfDefaults[k] === "boolean") cleanPdf[k] = typeof raw.pdf?.[k] === "boolean" ? raw.pdf[k] : pdfDefaults[k]; });
+    cleanPdf.layout = enumValue(raw.pdf?.layout, ["client", "detail"], "client");
     cleanPdf.perPage = enumValue(Number(raw.pdf?.perPage), [1, 2, 4, 6], 2); cleanPdf.fontSize = enumValue(raw.pdf?.fontSize, ["normal", "large"], "normal");
     const customs = (Array.isArray(raw.custom) ? raw.custom : []).slice(0, 100).map(cleanExercise).map(ex => ({ ...ex, custom: true }));
     const overrides = {}; Object.entries(raw.libraryOverrides || {}).slice(0, 100).forEach(([k, v]) => { if (builtins.some(ex => ex.id === k)) overrides[k] = { video: safeURL(v?.video) }; });
@@ -343,6 +395,10 @@
       else if (action === "load-saved") { const item = saved.find(x => x.id === id); if (!item) return; try { remember(); restore(item.value); activeSnapshotId = id; notify("Det gemte program er åbnet."); $("program").scrollIntoView({ behavior: "smooth" }); } catch (error) { notify(error.message, true); } }
       else if (action === "delete-saved") { const item = saved.find(x => x.id === id); if (!item) return; dialog("Slet gemt program?", `<p>${h(item.title)} fjernes fra listen på denne enhed. Dit åbne program bevares.</p>`, "Slet program", () => { const next = saved.filter(x => x.id !== id); if (!write("next-pro-saved", next)) return false; saved = next; renderSaved(); }); }
     });
+    $("view-client").onclick = () => { clientView = true; renderClientView(); };
+    $("view-editor").onclick = () => { clientView = false; renderClientView(); };
+    $("new-small-group").onclick = () => { remember(); S.sessionMinutes = 55; S.warmupMinutes = 8; S.version = 0; S.program = E.generate(S, A.exercisePools); pdf.layout = "client"; clientView = true; refresh(); notify("Et nyt 55-minutters Small Group-forslag er klar. Du kan fortryde for at hente dit tidligere program."); };
+    $("group-size").onchange = event => { S.assignment.participantCount = event.target.value; A.syncAssignmentForm(); A.renderAssignment(); updateSummary(); A.markUnsaved(); };
     $("new-block").onclick = addBlock; $("fit-time").onclick = fitTime;
     $("open-library").onclick = () => openLibrary(Math.min(2, S.program.length - 1));
     $("new-exercise").onclick = () => editExercise(null, null);
@@ -360,7 +416,7 @@
     $("apply-small-group").addEventListener("click", remember, true);
     document.querySelectorAll("[data-meta]").forEach(el => el.addEventListener("input", () => { meta[el.dataset.meta] = el.value; updateSummary(); A.markUnsaved(); }));
     document.querySelectorAll("[data-pdf]").forEach(el => el.addEventListener("change", () => { pdf[el.dataset.pdf] = el.type === "checkbox" ? el.checked : el.dataset.pdf === "perPage" ? Number(el.value) : el.value; renderPrint(); A.markUnsaved(); }));
-    $("pdf-preset").onchange = event => { if (event.target.value === "client") Object.assign(pdf, { assignment: false, music: false, practical: false }); if (event.target.value === "next") Object.assign(pdf, { assignment: true, music: true, practical: true }); syncPdf(); renderPrint(); A.markUnsaved(); };
+    $("pdf-preset").onchange = event => { pdf.layout = event.target.value; syncPdf(); renderPrint(); A.markUnsaved(); };
     $("pro-print-button").onclick = printProgram;
     $("pro-preview-button").onclick = previewPdf;
     $("library-search").oninput = () => { clearTimeout(searchTimer); searchTimer = setTimeout(renderLibrary, 120); };
@@ -378,7 +434,8 @@
     booting = false; refresh(); renderLibrary();
   }
   function mount() {
-    $("program").insertAdjacentHTML("afterbegin", `<div class="pro-workbench"><div class="workbench-top"><span class="pro-kicker">PROGRAMVÆRKSTED</span><strong id="workbench-count"></strong></div><div class="pro-toolbar"><button class="save-button" id="open-library" type="button">+ Tilføj øvelse</button><button class="secondary-button" id="new-block" type="button">Ny blok</button><button class="icon-button" id="undo-program" type="button" aria-label="Fortryd" title="Fortryd">↶</button><button class="icon-button" id="redo-program" type="button" aria-label="Gendan" title="Gendan">↷</button></div><p class="form-help" id="duration-check"></p><button class="text-button" id="fit-time" type="button" hidden></button><details class="pro-settings"><summary>Programoplysninger <span>Klient, instruktør og mål</span></summary><div class="pro-form-grid">${Object.entries({ title: "Programtitel", client: "Klient / hold", trainer: "Instruktør", organization: "Organisation", date: "Dato" }).map(([k, label]) => `<label><span>${label}</span><input type="${k === "date" ? "date" : "text"}" data-meta="${k}" maxlength="180"></label>`).join("")}${["goal", "notes"].map(k => `<label class="wide"><span>${k === "goal" ? "Mål med forløbet" : "Fokus og hensyn"}</span><textarea rows="2" data-meta="${k}" maxlength="3000"></textarea></label>`).join("")}</div></details><details class="pro-settings" id="pdf-settings"><summary>PDF og udskrift <span>Layout og indhold</span></summary><div class="pro-form-grid"><label><span>Dokumenttype</span><select id="pdf-preset"><option value="next">NEXT-opgave med besvarelse</option><option value="client">Klientprogram</option></select></label><label><span>Maks. øvelser pr. A4-side</span><select data-pdf="perPage"><option value="1">1 – stort format</option><option value="2">2 – detaljeret</option><option value="4">4 – kompakt</option><option value="6">6 – oversigt</option></select></label><label><span>Skriftstørrelse</span><select data-pdf="fontSize"><option value="normal">Normal</option><option value="large">Større</option></select></label></div><div class="pdf-checkboxes">${Object.entries({ images: "Øvelsesbilleder", anatomy: "Anatomifigurer", cues: "Udførelse og cues", variations: "Lettere / sværere", videos: "Videolinks", qr: "QR-koder til video", music: "Spotify og musik", assignment: "Opgavebesvarelse", practical: "Praktisk afprøvning til sidst" }).map(([k, label]) => `<label class="pro-check"><input type="checkbox" data-pdf="${k}">${label}</label>`).join("")}</div><p class="form-help">Vælg »Gem som PDF« i browserens udskriftsvindue for at bevare links. QR-koder vises for øvelser med et videolink. Om nødvendigt reduceres antallet af øvelser pr. side for at give plads til teksten.</p><button class="secondary-button" id="pro-preview-button" type="button">Forhåndsvis PDF</button><button class="save-button" id="pro-print-button" type="button">Print / gem PDF</button></details><details class="pro-settings"><summary>Mine programmer <span>Gem, genbrug og flyt</span></summary><div class="pro-toolbar"><button class="save-button" type="button" id="save-named">Gem program / skabelon</button><button class="secondary-button" type="button" id="download-program">Download programfil</button><button class="secondary-button" type="button" id="import-program">Åbn programfil</button><input id="program-file" type="file" accept=".json,application/json" hidden></div><p class="form-help">Programmer og klientoplysninger gemmes i denne browser. En programfil kan åbnes på en anden enhed. Brug initialer, hvis du deler en fil.</p><div id="saved-programs"></div></details><div class="autosave-line"><span id="autosave-status">Automatisk kladde på denne enhed</span></div><p id="pro-status" role="status" aria-live="polite"></p></div><section id="pro-print-summary"></section>`);
+    $("program").insertAdjacentHTML("afterbegin", `<div class="pro-workbench"><div class="workbench-top"><span class="pro-kicker">PROGRAMVÆRKSTED</span><strong id="workbench-count"></strong></div><div class="pro-toolbar"><button class="save-button" id="new-small-group" type="button">Nyt Small Group-program · 55 min</button><button class="secondary-button" id="open-library" type="button">+ Tilføj øvelse</button><button class="secondary-button" id="new-block" type="button">Ny blok</button><button class="icon-button" id="undo-program" type="button" aria-label="Fortryd" title="Fortryd">↶</button><button class="icon-button" id="redo-program" type="button" aria-label="Gendan" title="Gendan">↷</button></div><label class="group-count"><span>Deltagere i Small Group</span><select id="group-size"><option value="2">2 deltagere</option><option value="3">3 deltagere</option></select></label><p class="form-help" id="duration-check"></p><p id="clock-status" class="clock-status" role="status"></p><button class="text-button" id="fit-time" type="button" hidden></button><details class="pro-settings"><summary>Programoplysninger <span>Klient, instruktør og mål</span></summary><div class="pro-form-grid">${Object.entries({ title: "Programtitel", client: "Klient / hold", trainer: "Instruktør", organization: "Organisation", date: "Dato" }).map(([k, label]) => `<label><span>${label}</span><input type="${k === "date" ? "date" : "text"}" data-meta="${k}" maxlength="180"></label>`).join("")}${["goal", "notes"].map(k => `<label class="wide"><span>${k === "goal" ? "Mål med forløbet" : "Fokus og hensyn"}</span><textarea rows="2" data-meta="${k}" maxlength="3000"></textarea></label>`).join("")}</div></details><details class="pro-settings" id="pdf-settings"><summary>PDF og udskrift <span>Layout og indhold</span></summary><div class="pro-form-grid"><label><span>Dokumenttype</span><select id="pdf-preset"><option value="client">Kundeprogram – kompakt, normalt 2 sider</option><option value="detail">Instruktør / NEXT-opgave – med bilag</option></select></label><label data-detail-pdf><span>Maks. øvelser pr. A4-side</span><select data-pdf="perPage"><option value="1">1 – stort format</option><option value="2">2 – detaljeret</option><option value="4">4 – kompakt</option><option value="6">6 – oversigt</option></select></label><label data-detail-pdf><span>Skriftstørrelse</span><select data-pdf="fontSize"><option value="normal">Normal</option><option value="large">Større</option></select></label></div><div class="pdf-checkboxes" data-detail-pdf>${Object.entries({ images: "Øvelsesbilleder", anatomy: "Anatomifigurer", cues: "Udførelse og cues", variations: "Lettere / sværere", videos: "Videolinks", qr: "QR-koder til video", music: "Spotify og musik", assignment: "Opgavebesvarelse", practical: "Praktisk afprøvning til sidst" }).map(([k, label]) => `<label class="pro-check"><input type="checkbox" data-pdf="${k}">${label}</label>`).join("")}</div><p class="form-help">Kundeprogrammet samler øvelserne i blokke med tydelig dosering og samarbejde. Instruktørudgaven bevarer anatomifigurer og opgavebilag. Vælg »Gem som PDF« i browserens udskriftsvindue for at bevare links. QR-koder vises for øvelser med et videolink. Om nødvendigt reduceres antallet af øvelser pr. side for at give plads til teksten.</p><button class="secondary-button" id="pro-preview-button" type="button">Forhåndsvis PDF</button><button class="save-button" id="pro-print-button" type="button">Print / gem PDF</button></details><details class="pro-settings"><summary>Mine programmer <span>Gem, genbrug og flyt</span></summary><div class="pro-toolbar"><button class="save-button" type="button" id="save-named">Gem program / skabelon</button><button class="secondary-button" type="button" id="download-program">Download programfil</button><button class="secondary-button" type="button" id="import-program">Åbn programfil</button><input id="program-file" type="file" accept=".json,application/json" hidden></div><p class="form-help">Programmer og klientoplysninger gemmes i denne browser. En programfil kan åbnes på en anden enhed. Brug initialer, hvis du deler en fil.</p><div id="saved-programs"></div></details><div class="autosave-line"><span id="autosave-status">Automatisk kladde på denne enhed</span></div><p id="pro-status" role="status" aria-live="polite"></p></div><section id="pro-print-summary"></section>`);
+    $("program-timeline").insertAdjacentHTML("beforebegin", `<div class="program-view-toggle"><button id="view-client" type="button" aria-pressed="true">Kundevisning</button><button id="view-editor" type="button" aria-pressed="false">Redigér program</button></div><div id="client-program-view"></div>`);
     $("assignment").insertAdjacentHTML("beforebegin", `<section class="exercise-library" id="exercise-library" aria-labelledby="library-title"><header class="library-header"><div><span class="pro-kicker">DIT ØVELSESBIBLIOTEK</span><h2 id="library-title">Find den rigtige øvelse.</h2><p>38 illustrerede øvelser – og plads til dine egne.</p></div><button class="save-button" id="new-exercise" type="button">+ Opret egen øvelse</button></header><div class="library-controls"><label class="library-search-label"><span>Søg i øvelser og muskler</span><input type="search" id="library-search" placeholder="Fx balder, squat eller skulder…"></label><label><span>Kategori</span><select id="library-category"><option value="">Alle kategorier</option>${Object.entries(categories).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select></label><label><span>Udstyr</span><select id="library-equipment"><option value="">Alt udstyr</option>${["Kropsvægt", "Måtte", "Håndvægte", "Elastik", "Andet"].map(k => `<option>${k}</option>`).join("")}</select></label><label><span>Muskelgruppe</span><select id="library-muscle"><option value="">Alle muskler</option>${Object.entries(A.muscleGroups).map(([k, v]) => `<option value="${k}">${h(v.danish)}</option>`).join("")}</select></label></div><div class="library-options"><div><label class="pro-check"><input type="checkbox" id="library-low-impact">Uden hop</label><label class="pro-check"><input type="checkbox" id="library-favorites">Kun favoritter</label></div><label class="library-target"><span>Tilføj til</span><select id="library-target"></select></label></div><div id="library-mode" class="library-mode" hidden><span id="library-mode-text"></span><button type="button" id="cancel-replace">Annuller udskiftning</button></div><p id="library-count" class="form-help" role="status"></p><div class="library-grid" id="library-grid"></div></section>`);
     document.body.insertAdjacentHTML("beforeend", `<dialog id="pro-dialog" aria-labelledby="dialog-title"></dialog>`);
   }

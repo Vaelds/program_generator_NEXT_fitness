@@ -1,4 +1,4 @@
-NEXT TRÆNINGSPLAN – PROGRAMVÆRKSTED, VERSION 3
+NEXT TRÆNINGSPLAN – PROGRAMVÆRKSTED, VERSION 4
 ============================================
 
 ÅBN SIDEN
@@ -8,18 +8,35 @@ Du kan bruge Live Server / Live Preview, men det er ikke et krav.
 Der kræves hverken npm, Node.js eller en terminal.
 
 BYG PROGRAMMET
-1. Vælg holdprofil, udstyr og 20–180 minutter. Generér et forslag.
-2. Brug Tilføj øvelse til at vælge fra de 38 eksisterende øvelser eller dine egne.
-3. Søg på navn eller muskel. Filtrér efter kategori, udstyr, muskel og favoritter.
-4. Brug Redigér på en øvelse til dosering, sæt, pause, belastning, tempo, RPE,
-   startposition, udførelse, lettere/sværere variation og personlige noter.
-5. Flyt øvelser med pilene eller vælg en anden blok i redigeringsvinduet.
-6. Du kan tilføje og redigere blokke. Blokændringer opdaterer den samlede tid.
-   Hvis du ændrer tidsmålet i venstre panel, kan Fordel tiden til … tilpasse
-   blokkene uden at udskifte dine øvelser. Tiden omfatter instruktion og skift;
-   kontrollér selv, at den valgte dosering og pauser passer inden for blokken.
-7. Fortryd og Gendan omfatter ændringer via programværkstedets knapper.
-   Direkte indtastning i tekstfelter gemmes i kladden, men har ikke separat historik.
+1. Vælg 2 eller 3 deltagere, holdprofil og udstyr.
+2. Tryk Nyt Small Group-program · 55 min for det reviderede undervisningsforslag.
+   Det erstatter programmet i kladden; Fortryd henter det tidligere program igen.
+   Almindelig generering understøtter fortsat 20–180 minutter.
+3. Kundevisning viser det korte program. Redigér program åbner alle redskaber.
+4. Brug Tilføj øvelse og bibliotekets søgning, filtre og favoritter.
+5. I øvelseseditoren vælges enten TID eller GENTAGELSER. Angiv ved gentagelser
+   samlet antal og sekunder pr. gentagelse. Resten af tidsvinduet er pause.
+   Antal er samlet for begge sider; fordel ligeligt ved ensidige øvelser.
+6. Redigér blok / Beregn blok styrer instruktion, skift og pause mellem runder.
+   Der beregnes kun hele runder. Resterende tid står udtrykkeligt som vand,
+   feedback og klargøring. Se tidslinjen i sekunder viser alle intervaller.
+   I Byt roller får alle samme tidsvindue og skift; kortere opgaver får pause
+   frem til fælles signal. En runde betyder, at alle har prøvet alle roller.
+7. Standardens 55 min: 2 velkomst + 8 opvarmning + 12 fælles rytme + 12 byt
+   roller + 14 spejlgruppe + 7 nedvarmning. Instruktion og pauser er inkluderet.
+8. Opvarmningen følger fire faste faser med stigende RPE: almen bevægelse,
+   større bevægelser, teknikprøve og højere puls. Armcirkler udføres i march.
+9. Redigér belastning, RPE, udførelse, kundens korte instruktion, variationer,
+   billede, video og noter. Flyt øvelser med pilene eller vælg en anden blok.
+10. Fortryd og Gendan omfatter værkstedets knapper. Direkte tekstindtastning
+    gemmes i kladden, men har ikke separat historik.
+
+ÆLDRE PROGRAMMER
+Eksisterende kladder og version 3-programfiler kan fortsat åbnes. De ændres
+ikke automatisk til nye øvelser. Blokke uden et kontrolleret tidsregnskab
+markeres og kan ikke udskrives med programmets printknap, før de er rettet.
+Brug Beregn blok (gennemgå de foreslåede intervaller) eller opret det nye
+55-minutters forslag. Tag gerne en programfil som kopi først.
 
 PROGRAMOPLYSNINGER OG GEMNING
 Indtast programtitel, klient/hold, instruktør, organisation, dato, mål og hensyn.
@@ -43,14 +60,17 @@ ikke et licenseret videobibliotek. QR-koder genereres lokalt for de valgte links
 Et klik på et videolink eller Spotify åbner den eksterne tjeneste.
 
 PDF OG UDSKRIFT
-Vælg NEXT-opgave eller Klientprogram. Du kan derefter tilpasse hvert indholdsvalg.
-Vælg højst 1, 2, 4 eller 6 øvelser pr. A4-side. 1–2 anbefales til detaljeret vejledning;
-4–6 er kompakte layouts. Forhåndsvis PDF viser resultatet før udskrift.
-Antallet pr. side reduceres automatisk, hvis teksten fylder for meget.
-Ekstra lange øvelsestekster fortsætter på flere sider.
-Billeder, anatomi, instruktioner, variationer, videoer, QR, musik, opgavebesvarelse
-og praktisk afprøvning kan vælges til og fra. Praktisk afprøvning står altid sidst.
-Gentagelser/arbejdstid står kun i den markerede doseringsrække på øvelsesarket.
+Kundeprogram er standard. Det samler opvarmning, øvelser, billeder, samarbejde,
+TID/GENTAGELSER og tidsregnskab på normalt 2 A4-sider (ét ark på begge sider).
+Der er ingen særskilt forside eller bilag i kundeprogrammet. Lange personlige
+tekster eller ekstra øvelser får mere plads frem for at blive klippet af.
+Forhåndsvis PDF viser, om der er behov for ekstra sider.
+
+Vælg Instruktør / NEXT-opgave for den detaljerede udgave. Her kan du vælge
+1, 2, 4 eller 6 øvelser pr. side og til-/fravælge anatomi, videoer, QR-koder,
+Spotify, opgavebesvarelse og praktisk afprøvning. Praktisk afprøvning er sidst.
+Antallet af øvelser pr. side reduceres automatisk ved lange tekster.
+
 Brug Print / gem PDF og vælg browserens destination Gem som PDF.
 Vælg A4, portræt, 100 % og slå browserens egne sidehoveder/-fødder fra.
 Aktivér baggrundsgrafik for NEXT-farver. Microsoft Print to PDF kan miste links.
