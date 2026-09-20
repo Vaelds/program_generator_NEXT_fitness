@@ -16,13 +16,24 @@
     const active = Number(d.reps) * Number(d.tempo), window = Math.max(Number(clock.window || 40), active);
     return { mode: "GENTAGELSER", text: `${d.reps} i alt · ${d.tempo} sek./gent.`, detail: `${active} sek. bevægelse + ${window - active} sek. pause i et ${window}-sek. vindue.`, seconds: window };
   }
+  function doseFor(ex, block) {
+    const c = block.clock || {}, d = doseLabel(ex, c);
+    if (c.kind !== "roles" || !d.seconds) return d;
+    const window = Math.max(...block.exercises.map(x => doseLabel(x, c).seconds || 0));
+    if (ex.dose.mode === "reps") return doseLabel(ex, { ...c, window });
+    return { ...d, seconds: window, detail: window > d.seconds ? `${window - d.seconds} sek. pause frem til fælles skift (${window} sek. i alt).` : "" };
+  }
+  function transitionFor(ex, block) {
+    const c = block.clock || {};
+    return c.kind === "roles" ? Math.max(...block.exercises.map(x => secs(x.transitionSeconds ?? c.transition ?? 0))) : secs(ex.transitionSeconds ?? c.transition ?? 0);
+  }
   function groupInstructions(kind, count, roundRest) {
     const members = Number(count) === 2 ? "A og B" : "A, B og C";
-    if (kind === "together") return `${members} arbejder samtidig på samme øvelse med hver sin belastning. Skift rytmeleder efter hver øvelse. I den fælles pause på ${roundRest} sek. giver hver deltager én konkret teknikobservation til makkeren. Aftal fx knæretning eller rolig ryg før start.`;
+    if (kind === "together") return `${members} arbejder samtidig med egen belastning. Skift rytmeleder efter hver øvelse. I pausen (${roundRest} sek.) deler alle ét konkret tip om fx knæretning eller rolig ryg. Aftal teknikmålet før start.`;
     if (kind === "roles") return Number(count) === 2
       ? "A udfører styrkeøvelsen; B er teknikmakker og går roligt på stedet. B observerer ét aftalt fokus og giver ét kort cue. Byt ved hvert stationsskift. Begge får lige mange arbejds- og makkerintervaller; instruktøren vælger belastningen."
-      : "A udfører styrke, B udfører kontroløvelsen, C er teknikmakker og går roligt på stedet. C observerer A og giver ét kort cue. Rotér A → B → C ved hvert stationsskift. Efter én runde har alle prøvet alle tre roller. Instruktøren vælger belastningen.";
-    if (kind === "mirror") return `${members} følger samme leder med god afstand og eget bevægeudslag. Skift leder efter hvert interval. Lederen viser rolige retnings- eller temposkift; de andre spejler. Fælles mål: alle holder den aftalte intensitet og kan følge med. Giv tommel op/ned i pausen, og justér næste interval sammen.`;
+      : "Start: A på styrke, B på kontrol, C som teknikmakker. C marcherer roligt og giver A ét aftalt teknikcue. Rotér én rolle frem ved hvert skift (1 → 2 → 3 → 1). En runde = alle har prøvet alle tre roller.";
+    if (kind === "mirror") return "Følg lederen med god afstand og eget niveau. Skift leder efter hvert interval. Lederen ændrer retning/tempo; resten spejler. Fælles mål: alle kan følge med ved den aftalte intensitet. Giv tommel op/ned i pausen, og tilpas sammen.";
     return "Aftal roller og fælles opgave før start.";
   }
   function analyze(block, participants = 3) {
@@ -47,11 +58,11 @@
     }
     if (c.kind === "roles" && (block.exercises.at(-1)?.id || block.exercises.at(-1)?.name) !== "March på stedet") errors.push("Den sidste rolle skal være teknikmakker med aktiv march; vælg Fælles rytme, hvis alle roller skal være styrkeøvelser.");
     const slots = block.exercises.map((ex, i) => {
-      const dose = doseLabel(ex, c), d = ex.dose;
+      const dose = doseFor(ex, block), d = ex.dose;
       if (!d || !["time", "reps"].includes(d.mode)) errors.push(`${ex.name}: vælg tid eller gentagelser.`);
       if (d?.mode === "time" && (!Number.isInteger(d.seconds) || d.seconds < 5 || d.seconds > 600)) errors.push(`${ex.name}: arbejdstid skal være 5–600 sek.`);
       if (d?.mode === "reps" && (!Number.isInteger(d.reps) || d.reps < 1 || d.reps > 60 || !Number.isInteger(d.tempo) || d.tempo < 1 || d.tempo > 10)) errors.push(`${ex.name}: angiv 1–60 gentagelser og 1–10 sek. pr. gentagelse.`);
-      return { ex, i, dose, work: dose.seconds || 0, shift: ex.transitionSeconds === undefined ? transition : secs(ex.transitionSeconds) };
+      return { ex, i, dose, work: dose.seconds || 0, shift: transitionFor(ex, block) };
     });
     if (!slots.length) errors.push("Tilføj mindst én øvelse.");
     if (c.kind === "roles" && slots.length !== Number(participants)) errors.push(`Der er ${slots.length} roller til ${participants} deltagere. Lav nyt forslag eller tilpas antallet af øvelser.`);
@@ -65,7 +76,7 @@
     add("intro", intro, "Instruktion, demonstration og valg af niveau");
     for (let r = 1; r <= rounds; r++) {
       slots.forEach(x => {
-        const label = x.dose.mode === "TID" ? `${x.ex.name}: ${x.dose.text}` : `${x.ex.name}: ${x.dose.text}; ${x.dose.detail}`;
+        const label = c.kind === "roles" ? `Rotation ${x.i + 1}: alle arbejder i deres aktuelle rolle i et fælles ${x.work}-sek. vindue` : `${x.ex.name}: ${x.dose.text}${x.dose.detail ? "; " + x.dose.detail : ""}`;
         add("exercise", x.work, label, { exercise: x.i, round: r, phase: x.ex.phase || "", rpe: x.ex.targetRpe || "" });
         add("transition", x.shift, "Skift, klargøring og kort cue", { exercise: x.i, round: r });
       });
@@ -112,6 +123,7 @@
     });
     const warm = base("warmup", "Opvarmning · stigende intensitet", warmup, "warmup", [], "warmup");
     const warmGroups = [[get("March på stedet"), get("Lateral step + reach")], [get("Squat to reach"), get("Arm circles")], [copy(a[0]), copy(a[1])], [get("Step jack"), get("Shadow boxing")]];
+    warmGroups[1][1].clientName = "Armcirkler i aktiv march";
     const peak = Math.max(3, Math.min(6, Number(S.intensity) - 1)), rpes = [Math.max(1, peak - 3), Math.max(2, peak - 2), peak - 1, peak];
     const names = ["Almen: find rytmen", "Dynamisk: større bevægelser", "Specifik: øv hoveddelens teknik", "Saml gruppen: løft tempoet"];
     const cues = ["Start roligt, brug armene og øg gradvist skridtlængden.", "Øg bevægeudslaget kontrolleret. Bliv i bevægelse.", "Brug ingen eller meget let modstand. Øv de næste bevægelsesmønstre.", "Skift leder mellem øvelserne. Øg tempoet, så pulsen stiger uden at miste kontrollen."];
@@ -129,7 +141,7 @@
   }
   function syncBlock(block, participants) {
     if (!block.clock) return;
-    block.exercises.forEach(ex => { const d = doseLabel(ex, block.clock); ex.dosage = `${d.mode}: ${d.text}${d.detail ? ". " + d.detail : ""}`; });
+    block.exercises.forEach(ex => { const d = doseFor(ex, block); ex.dosage = `${d.mode}: ${d.text}${d.detail ? ". " + d.detail : ""}`; });
     const a = analyze(block, participants);
     if (a.valid) block.protocol = a.formula;
   }
@@ -139,5 +151,5 @@
     else { block.clock = { version: 1, kind: "together", intro, transition, roundRest: 30, window: Math.max(5, work) }; block.exercises.forEach(ex => { ex.dose = { mode: "time", seconds: Math.max(5, work) }; delete ex.sets; }); }
     syncBlock(block, participants);
   }
-  return { stamp, split, doseLabel, analyze, report, generate, syncBlock, adopt, groupInstructions };
+  return { stamp, split, doseLabel, doseFor, transitionFor, analyze, report, generate, syncBlock, adopt, groupInstructions };
 }));
