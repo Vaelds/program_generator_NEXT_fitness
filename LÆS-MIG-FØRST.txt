@@ -1,4 +1,4 @@
-NEXT TRÆNINGSPLAN – PROGRAMVÆRKSTED, VERSION 4
+NEXT TRÆNINGSPLAN – PROGRAMVÆRKSTED, VERSION 5
 ============================================
 
 ÅBN SIDEN
@@ -59,10 +59,25 @@ Tilføj et direkte http-/https-link til en instruktionsvideo. Siden indeholder
 ikke et licenseret videobibliotek. QR-koder genereres lokalt for de valgte links.
 Et klik på et videolink eller Spotify åbner den eksterne tjeneste.
 
+MUSIKVALG OG SPOTIFY
+Hver af de seks musiksmage har 20 konkrete sangforslag. Et startforslag med
+10 numre er valgt første gang. Brug + eller flueben til at til-/fravælge et nummer,
+Vælg alle 20, Brug startforslag eller Ryd valg. Spotify-linket åbner en søgning
+på titel og kunstner, hvor du kan vælge version og afspilning.
+Under Dit musikvalg kan du flytte et nummer til opvarmning, hoveddel eller
+nedvarmning og ændre rækkefølgen med pilene. Hver musiksmag husker sit eget
+valg. Den aktive musiksmags valgte numre kommer med i programfilen og PDF'en.
+Valget gemmes automatisk og følger med Mine programmer og Download programfil.
+Fortryd/Gendan gælder også ændringer i musikvalget.
+Musikforslag er ikke en automatisk Spotify-playliste. Øvelsernes tidsplan styrer
+træningen, uanset nummerlængde. Skift musik ved programmets blokskift.
+
 PDF OG UDSKRIFT
 Kundeprogram er standard. Det samler opvarmning, øvelser, billeder, samarbejde,
 TID/GENTAGELSER og tidsregnskab på normalt 2 A4-sider (ét ark på begge sider).
-Der er ingen særskilt forside eller bilag i kundeprogrammet. Lange personlige
+Musikbilaget tilføjer én side med klikbare links efter de to øvelsessider.
+Medtag musikbilag med klikbare Spotify-links kan slås fra under PDF og udskrift.
+Der er ingen særskilt forside i kundeprogrammet. Lange personlige
 tekster eller ekstra øvelser får mere plads frem for at blive klippet af.
 Forhåndsvis PDF viser, om der er behov for ekstra sider.
 

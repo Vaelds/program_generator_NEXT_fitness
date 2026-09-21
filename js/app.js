@@ -561,30 +561,7 @@
   }
 
   function renderMusic() {
-    const music = musicProfiles[state.music];
-    const bpm = musicTempo();
-    const warmupMinutes = state.program.find(item => item.id === "warmup")?.duration ?? 0;
-    const workMinutes = state.program.filter(item => !["arrival", "warmup", "cooldown"].includes(item.id)).reduce((sum, item) => sum + item.duration, 0);
-    const cooldownMinutes = state.program.find(item => item.id === "cooldown")?.duration ?? 0;
-    document.getElementById("spotify-main").href = spotifySearch(music.query);
-    const phases = [
-      { number: "01", title: "Opvarmning", time: `${warmupMinutes} min`, tracks: music.warm, energy: `Tydelig 4/4 · ${bpm.warm}` },
-      { number: "02", title: "Hoveddel", time: `${workMinutes} min`, tracks: music.work, energy: `Tydelig 4/4 · ${bpm.work}` },
-      { number: "03", title: "Nedvarmning", time: `${cooldownMinutes} min`, tracks: music.cool, energy: `Rolig puls · ${bpm.cool}` }
-    ];
-    document.getElementById("music-plan").innerHTML = `
-      <div class="music-summary"><span>Valgt Spotify-profil</span><strong>${state.music}</strong><p>${music.descriptor}. Forslagene prioriterer en tydelig, stabil takt, som er nem at orientere sig efter. BPM er musiktempo – ikke et krav om øvelsestempo.</p></div>
-      ${phases.map(phase => `<article class="music-phase"><div class="phase-head"><span>${phase.number}</span><div><p>${phase.energy}</p><h3>${phase.title}</h3></div><strong>${phase.time}</strong></div><ul>${phase.tracks.map(track => `<li><span>${track}</span><a href="${spotifySearch(track)}" target="_blank" rel="noreferrer" aria-label="Åbn Spotify-søgning efter ${track}">Åbn på Spotify ↗</a></li>`).join("")}</ul></article>`).join("")}`;
-
-    const printMusic = document.getElementById("print-music-sheet");
-    printMusic.innerHTML = `
-      <header class="print-music-header">
-        <div><span>03 · MUSIKVALG TIL HOLDTIMEN</span><h3>${state.music}</h3><p>${music.descriptor}. Tydelig 4/4-takt og en gradvis energikurve. Links er indstillet til en ny fane. Hvis PDF-læseren tilsidesætter det, brug Ctrl + klik.</p></div>
-        <a href="${spotifySearch(music.query)}" target="_blank" rel="noopener noreferrer">Åbn Spotify ↗</a>
-      </header>
-      <div class="print-music-grid">
-        ${phases.map(phase => `<article class="print-music-card"><div><span>${phase.number}</span><strong>${phase.title}</strong><small>${phase.time} · ${phase.energy}</small></div><ul>${phase.tracks.map(track => `<li><a href="${spotifySearch(track)}" target="_blank" rel="noopener noreferrer">${track} - Åbn på Spotify ↗</a></li>`).join("")}</ul></article>`).join("")}
-      </div>`;
+    window.NextMusic?.render();
   }
 
   const assignmentLabels = {

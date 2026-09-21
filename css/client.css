@@ -68,7 +68,7 @@
 }
 @media print {
   .program-view-toggle, #client-program-view, .block-clock, .clock-status { display:none !important; }
-  body.client-output #pro-print-summary, body.client-output #assignment-print-summary, body.client-output #print-music-sheet, body.client-output #print-practical-sheet { display:none !important; }
+  body.client-output #pro-print-summary, body.client-output #assignment-print-summary, body.client-output #print-practical-sheet { display:none !important; }
   body.client-output #print-exercise-pages { break-before:auto !important; page-break-before:auto !important; }
 }
 /* The iframe preview receives the same A4 dimensions as the actual print. */
