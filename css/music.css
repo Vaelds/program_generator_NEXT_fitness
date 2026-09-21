@@ -26,10 +26,13 @@
 .music-selected-phase header span { color:#b9cad6; font-size:12px; }
 .music-selected-phase ol { margin:10px 0 0; padding:0; list-style:none; }
 .music-selected-phase li { display:flex; align-items:center; gap:8px; padding:11px 0; border-top:1px solid #48586b; }
-.music-selected-copy { flex:1; min-width:0; }
+.music-selected-copy { flex:1; min-width:0; overflow-wrap:anywhere; }
 .music-selected-copy a { color:white; font-size:14px; font-weight:bold; line-height:1.3; text-underline-offset:3px; }
 .music-selected-copy small { display:block; color:#bbcad6; font-size:11px; margin-top:4px; }
-.music-row-buttons { display:flex; gap:3px; }
+.music-phase-select { display:flex; align-items:center; gap:1cm; flex:0 1 60%; min-width:0; }
+.music-phase-select > span { flex:1; min-width:0; overflow-wrap:anywhere; text-align:right; }
+.music-phase-select select { flex-shrink:0; }
+.music-row-buttons { display:flex; flex-shrink:0; gap:3px; }
 .music-row-buttons button { cursor:pointer; width:28px; height:31px; background:#293f55; color:white; border:1px solid #728498; font-size:18px; }
 .music-row-buttons button:disabled { opacity:.3; cursor:default; }
 .music-empty { color:#c5d2dc; font-size:13px; }
@@ -41,7 +44,12 @@
   .music-track-grid { grid-template-columns:1fr; }
   .music-selected-phase li { flex-wrap:wrap; }
   .music-selected-copy { flex-basis:100%; }
+  .music-phase-select { flex:1; }
   .music-actions strong { margin-left:0; }
+}
+@media(max-width:480px){
+  .music-phase-select { flex-direction:column; align-items:flex-start; gap:8px; }
+  .music-phase-select > span { text-align:left; }
 }
 .music-print-page { height:274mm; box-sizing:border-box; display:flex; flex-direction:column; color:#112438; background:white; break-inside:avoid; font-family:var(--body); }
 .music-sheet-header { border-bottom:1mm solid #ed7419; padding-bottom:4mm; margin-bottom:4mm; }

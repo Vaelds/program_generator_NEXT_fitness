@@ -175,7 +175,7 @@
   function printDocumentHTML() {
     const ids = pdf.layout === "client" ? ["print-exercise-pages", ...(pdf.music ? ["print-music-sheet"] : [])] : ["pro-print-summary", ...(pdf.assignment ? ["assignment-print-summary"] : []), "print-exercise-pages", ...(pdf.music ? ["print-music-sheet"] : []), ...(pdf.practical ? ["print-practical-sheet"] : [])];
     const content = ids.map(id => { const el = $(id).cloneNode(true); el.removeAttribute("aria-hidden"); return el.outerHTML; }).join("");
-    return `<!doctype html><html lang="da"><head><meta charset="utf-8"><base href="${h(new URL(".", document.baseURI).href)}"><title>${h(meta.title)}</title><link rel="stylesheet" href="css/style.css?v=5.0"><link rel="stylesheet" href="css/pro.css?v=5.0"><link rel="stylesheet" href="css/print.css?v=5.0"><link rel="stylesheet" href="css/client.css?v=5.0"><link rel="stylesheet" href="css/music.css?v=5.0"></head><body class="pdf-document-preview ${pdf.layout === "client" ? "client-output" : ""}">${content}</body></html>`;
+    return `<!doctype html><html lang="da"><head><meta charset="utf-8"><base href="${h(new URL(".", document.baseURI).href)}"><title>${h(meta.title)}</title><link rel="stylesheet" href="css/style.css?v=5.0"><link rel="stylesheet" href="css/pro.css?v=5.0"><link rel="stylesheet" href="css/print.css?v=5.0"><link rel="stylesheet" href="css/client.css?v=5.0"><link rel="stylesheet" href="css/music.css?v=5.0.1"></head><body class="pdf-document-preview ${pdf.layout === "client" ? "client-output" : ""}">${content}</body></html>`;
   }
   async function readyFrame(frame) {
     await frame.contentDocument.fonts.ready;
