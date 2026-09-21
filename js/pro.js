@@ -175,24 +175,37 @@
   function printDocumentHTML() {
     const ids = pdf.layout === "client" ? ["print-exercise-pages", ...(pdf.music ? ["print-music-sheet"] : [])] : ["pro-print-summary", ...(pdf.assignment ? ["assignment-print-summary"] : []), "print-exercise-pages", ...(pdf.music ? ["print-music-sheet"] : []), ...(pdf.practical ? ["print-practical-sheet"] : [])];
     const content = ids.map(id => { const el = $(id).cloneNode(true); el.removeAttribute("aria-hidden"); return el.outerHTML; }).join("");
-    return `<!doctype html><html lang="da"><head><meta charset="utf-8"><base href="${h(new URL(".", document.baseURI).href)}"><title>${h(meta.title)}</title><link rel="stylesheet" href="css/style.css?v=5.0"><link rel="stylesheet" href="css/pro.css?v=5.0"><link rel="stylesheet" href="css/print.css?v=5.0"><link rel="stylesheet" href="css/client.css?v=5.0"><link rel="stylesheet" href="css/music.css?v=5.0.1"></head><body class="pdf-document-preview ${pdf.layout === "client" ? "client-output" : ""}">${content}</body></html>`;
+    return `<!doctype html><html lang="da"><head><meta charset="utf-8"><base href="${h(new URL(".", document.baseURI).href)}"><title>${h(meta.title)}</title><link rel="stylesheet" href="css/style.css?v=5.0"><link rel="stylesheet" href="css/pro.css?v=5.0.2"><link rel="stylesheet" href="css/print.css?v=5.0"><link rel="stylesheet" href="css/client.css?v=5.0"><link rel="stylesheet" href="css/music.css?v=5.0.1"></head><body class="pdf-document-preview ${pdf.layout === "client" ? "client-output" : ""}">${content}</body></html>`;
   }
   async function readyFrame(frame) {
-    await frame.contentDocument.fonts.ready;
-    await Promise.all(Array.from(frame.contentDocument.images).map(img => img.decode ? img.decode().catch(() => {}) : Promise.resolve()));
-    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    let timer;
+    try {
+      await Promise.race([
+        (async () => {
+          await frame.contentDocument.fonts.ready;
+          await Promise.all(Array.from(frame.contentDocument.images).map(img => img.decode ? img.decode().catch(() => {}) : Promise.resolve()));
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        })(),
+        new Promise((_, reject) => { timer = setTimeout(() => reject(Error("PDF'en kunne ikke gøres klar. Kontrollér forbindelsen, og tryk Prøv igen.")), 15000); })
+      ]);
+    } finally { clearTimeout(timer); }
   }
   async function prepareLayout(frame) {
     layoutPerPage = Number(pdf.perPage);
-    A.preparePrint();
-    const html = printDocumentHTML();
-    A.restoreAfterPrint();
+    let html;
+    try { A.preparePrint(); html = printDocumentHTML(); }
+    finally { A.restoreAfterPrint(); }
     await new Promise((resolve, reject) => {
       const timer = setTimeout(() => reject(Error("Forhåndsvisningen kunne ikke indlæses. Prøv igen.")), 15000);
-      frame.onload = () => { clearTimeout(timer); resolve(); };
+      frame.onload = () => {
+        // Ignore the initial about:blank load; measure only the actual document.
+        if (!frame.contentDocument?.getElementById("print-exercise-pages")) return;
+        clearTimeout(timer); frame.onload = null; resolve();
+      };
       frame.srcdoc = html;
     });
     await readyFrame(frame);
+    if (!frame.isConnected || frame.closest("dialog")?.open === false) throw Error("Forhåndsvisningen er lukket.");
     if (pdf.layout === "client") {
       const target = frame.contentDocument.getElementById("print-exercise-pages"), pages = Array.from(target.querySelectorAll(".client-sheet"));
       const large = pages.filter(page => page.scrollHeight > page.clientHeight + 2);
@@ -217,35 +230,58 @@
     }
     return `${layoutPerPage === Number(pdf.perPage) ? `Op til ${layoutPerPage} øvelser pr. side.` : `Layoutet er tilpasset til ${layoutPerPage} øvelser pr. side, så indholdet kan være der.`}${longPages ? " Lange øvelsestekster fortsætter på flere sider." : ""} Den endelige sideskiftning vises i browserens udskriftsvindue.`;
   }
-  async function previewPdf() {
-    dialog("Forhåndsvis PDF", `<p class="pdf-preview-note" id="pdf-preview-note" role="status">Forbereder forhåndsvisningen …</p><div class="pdf-preview-scroll"><iframe id="pdf-preview-frame" title="Forhåndsvisning af træningsprogram" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe></div>`, "Print / gem PDF", () => { printProgram(); return false; }, "pdf-preview-dialog");
-    try { $("pdf-preview-note").textContent = await prepareLayout($("pdf-preview-frame")); }
-    catch (error) { $("pdf-preview-note").textContent = error.message; }
+  function pdfTimeWarning(check) {
+    if (check.valid) return "";
+    const issues = check.blocks.flatMap(b => b.errors.map(message => `${b.block.title}: ${message}`));
+    if (check.seconds !== check.targetSeconds) issues.push(`Blokkene giver ${E.stamp(check.seconds)}, mens den valgte varighed er ${E.stamp(check.targetSeconds)}.`);
+    return `<aside class="pdf-time-warning" role="alert"><strong>Kladde – tidsregnskabet skal kontrolleres</strong><p>Du kan gemme en PDF af kladden. Ret disse punkter, før programmet bruges til træning:</p><ul>${issues.map(message => `<li>${h(message)}</li>`).join("")}</ul></aside>`;
   }
-  async function printProgram(event) {
+  async function previewPdf() {
     if (printing) return;
     const check = E.report(S.program, S.assignment.participantCount, S.sessionMinutes);
-    if (!check.valid) return notify("Ret tidsregnskabet i de markerede blokke, før du udskriver. Du kan se dem under Redigér program.", true);
-    printing = true;
-    const button = event?.currentTarget, label = button?.textContent;
-    if (button) { button.disabled = true; button.textContent = "Forbereder PDF …"; }
-    const frame = document.createElement("iframe"); frame.className = "pdf-measure-frame"; frame.title = "Forbereder dokument"; frame.setAttribute("aria-hidden", "true"); frame.setAttribute("sandbox", "allow-same-origin"); document.body.appendChild(frame);
+    let measured = null;
+    dialog("Forhåndsvis PDF", `<p class="pdf-preview-note" id="pdf-preview-note" role="status">Forbereder PDF …</p><p class="pdf-preview-help">Tryk på knappen nederst, og vælg <b>Gem som PDF</b> som destination i udskriftsvinduet.</p>${pdfTimeWarning(check)}<div class="pdf-preview-scroll"><iframe id="pdf-preview-frame" title="Forhåndsvisning af træningsprogram" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox"></iframe></div>`, "Forbereder PDF …", () => {
+      if (measured === null) { previewPdf(); return false; }
+      printPreparedPdf(measured);
+      return false;
+    }, "pdf-preview-dialog");
+    const d = $("pro-dialog"), frame = $("pdf-preview-frame"), button = d.querySelector('button[type="submit"]');
+    button.disabled = true;
     try {
       const message = await prepareLayout(frame);
-      // Keep the measured pages, including flow pages for unusually long text.
-      const measured = $("print-exercise-pages").innerHTML;
+      if (!d.open || $("pdf-preview-frame") !== frame) return;
+      measured = $("print-exercise-pages").innerHTML;
+      $("pdf-preview-note").textContent = message;
+      button.textContent = check.valid ? "Print / gem PDF" : "Gem kladde som PDF";
+    } catch (error) {
+      if (!d.open || $("pdf-preview-frame") !== frame) return;
+      $("pdf-preview-note").textContent = error.message || "PDF'en kunne ikke klargøres. Prøv igen.";
+      button.textContent = "Prøv igen";
+    } finally {
+      if (d.open && $("pdf-preview-frame") === frame) button.disabled = false;
+    }
+  }
+  function printProgram() { return previewPdf(); }
+  function printPreparedPdf(measured) {
+    if (printing) return;
+    printing = true;
+    try {
       A.preparePrint(); $("print-exercise-pages").innerHTML = measured;
-      await document.fonts.ready;
-      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      window.print(); notify(message);
-    } catch (error) { notify(error.message || "PDF'en kunne ikke klargøres.", true); }
-    finally { frame.remove(); A.restoreAfterPrint(); printing = false; if (button) { button.disabled = false; button.textContent = label; } }
+      // Open native printing directly from the click, after layout is ready.
+      $("pro-dialog").close();
+      window.print();
+      notify("Vælg Gem som PDF i udskriftsvinduet. Du kan åbne PDF-knappen igen, hvis du vil prøve igen.");
+    } catch (error) {
+      dialog("PDF kunne ikke åbnes", `<p>${h(error.message || "Udskriftsvinduet kunne ikke åbnes.")}</p><p>Prøv igen, eller luk vinduet og brug Ctrl+P (Cmd+P på Mac). Vælg derefter Gem som PDF.</p>`, "Prøv igen", () => { printPreparedPdf(measured); return false; });
+    } finally { A.restoreAfterPrint(); printing = false; }
   }
   function preparePrint() {
     document.body.classList.toggle("client-output", pdf.layout === "client");
     ["music", "assignment", "practical"].forEach(key => document.body.classList.toggle("pro-no-" + key, !pdf[key]));
     let minute = 0;
     $("pro-print-summary").innerHTML = `<header><img src="assets/images/next-logo.png" alt="NEXT"><span>${h(meta.organization)}</span></header><p class="pro-kicker">TRÆNINGSPROGRAM · ${h(meta.date)}</p><h1>${h(meta.title || "Træningsprogram")}</h1><div class="print-client-row"><div><small>UDARBEJDET TIL</small><strong>${h(meta.client || "Hold / individuel træning")}</strong></div><div><small>INSTRUKTØR</small><strong>${h(meta.trainer || "Ikke angivet")}</strong></div><div><small>VARIGHED</small><strong>${total()} min</strong></div></div>${meta.goal ? `<h2>Mål</h2><p>${h(meta.goal)}</p>` : ""}${meta.notes ? `<h2>Fokus og hensyn</h2><p>${h(meta.notes)}</p>` : ""}<h2>Minutplan</h2><table><thead><tr><th>Tid</th><th>Blok</th><th>Instruktion</th></tr></thead><tbody>${S.program.map(b => { let start = minute; minute += b.duration; return `<tr><td>${start}–${minute} min</td><td>${h(b.title)}</td><td>${h(b.protocol)}</td></tr>`; }).join("")}</tbody></table><p class="print-profile">${h(S.age)} år · ${h(S.level)} · ${h(S.sessionType)} · Intensitet ${S.intensity}/10</p>`;
+    const warning = pdfTimeWarning(E.report(S.program, S.assignment.participantCount, S.sessionMinutes));
+    if (warning) $("pro-print-summary").insertAdjacentHTML("afterbegin", warning);
   }
   function renderLibrary() {
     const search = $("library-search").value.toLocaleLowerCase("da"), category = $("library-category").value, equipment = $("library-equipment").value, muscle = $("library-muscle").value;
